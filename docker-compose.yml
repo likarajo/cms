@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "4000:4000"
+    depends_on:
+      - backend
+    environment:
+      - VITE_BACKEND_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    # depends_on:
+    #   - db
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=rootpassword
+      - MYSQL_DB=testdb
+    volumes:
+      - ./backend:/app
+
+  # db:
+  #   image: mysql:8
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: rootpassword
+  #     MYSQL_DATABASE: testdb
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - db-data:/var/lib/mysql
+
+# volumes:
+#   db-data:
