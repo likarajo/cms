@@ -1,4 +1,4 @@
-# Content Management System
+# Messages - Content Management System
 
 ## Project structure
 

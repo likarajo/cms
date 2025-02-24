@@ -1,13 +1,13 @@
-:root {
-  font-family: Universal, sans-serif;
-  line-height: 1.5;
+#root {
+  font-family: 'Universal Sans', sans-serif;
   font-weight: 400;
+  margin-left: 24px;
+  margin-right: 24px;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
+  width: 100vw;
   min-width: 320px;
+  height: 100vh;
   min-height: 100vh;
 }
