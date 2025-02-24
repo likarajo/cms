@@ -1,21 +1,15 @@
-import React, {useEffect, useState} from 'react'
-import './styles/App.css'
-import axios from 'axios';
+import React from 'react';
+import '@/styles/App.css';
+import AppHeader from '@/components/common/AppHeader';
+import AppRouter from '@/components/common/AppRouter';
+import AppFooter from '@/components/common/AppFooter';
 
 function App() {
-
-  const [message, setMessage] = useState("Loading...");
-
-  useEffect(() => {
-    axios.get("http://localhost:8000")
-      .then(response => setMessage(response.data.message))
-      .catch(error => setMessage(error))
-  }, [])
-
   return (
     <React.Fragment>
-      <h1>Watermark CMS</h1>
-      <p>{message}</p>
+      <AppHeader/>
+      <AppRouter/>
+      <AppFooter/>
     </React.Fragment>
   )
 }
