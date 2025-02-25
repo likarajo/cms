@@ -23,6 +23,7 @@ def home():
             routes.append(route_info)
     return render_template('index.html', routes=routes)
 
+
 @messages.route("/messages", methods=["GET"])
 def get_messages():
     try:
@@ -52,7 +53,7 @@ def create_message():
         db.session.add(new_message)
         db.session.commit()
         logging.info(f"Message added successfully: {new_message.title}")
-        return make_response({"message": f"Message added successfully: {new_message.title}"}, 201)
+        return make_response({"msg": f"Message added successfully: {new_message.title}"}, 201)
     except Exception as e:
         logging.exception(f"Error adding message: {str(e)}")
         return make_response({"msg": "Error adding message"}, 500)
