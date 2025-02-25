@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react"
 import { Card, CardContent, Typography, Box, Chip, Badge, Stack, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
-import { Add } from '@mui/icons-material';
+import { Add, Close, Edit } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { DEFAULT_IMAGE } from "@/constants";
 
@@ -77,6 +77,7 @@ const MessageTile = ({ message } ) => {
             <Dialog
                 open={openView}
                 onClose={() => setOpenView(false)}
+                maxWidth={"lg"}
             >
                 <DialogTitle id="scroll-dialog-title">
                     {message?.title}
@@ -93,13 +94,13 @@ const MessageTile = ({ message } ) => {
                     >
                         <Typography variant="body2">
                             {/* {message?.description} */}
-                            {Array.from({ length: 10 }, () => message?.description).join(" ")}
+                            {Array.from({ length: 10 }, () => message?.description).join("\n")}
                         </Typography>
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenView(false)} variant="outlined">Close</Button>
-                    <Button onClick={() => setOpenEdit(true)}>Edit</Button>
+                    <Button onClick={() => setOpenView(false)} variant="outlined" startIcon={<Close/>}>Close</Button>
+                    <Button onClick={() => setOpenEdit(true)} startIcon={<Edit/>}>Edit</Button>
                 </DialogActions>
             </Dialog>
             }
