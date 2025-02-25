@@ -1,44 +1,27 @@
 services:
-  frontend:
-    image: cms-frontend
-    container_name: cms-frontend
+
+  cms-api:
+    image: cms-api
+    container_name: cms-api
+    build: ./backend
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    restart: always
+
+  cms-web-ui:
+    image: cms-web-ui
+    container_name: cms-web-ui
     build: ./frontend
+    env_file:
+      - .env
     ports:
       - "4000:4000"
     depends_on:
-      - backend
-    env_file:
-      - .env
+      - cms-api
     volumes:
       - ./frontend:/app
       - /app/node_modules
-
-  backend:
-    image: cms-backend
-    container_name: cms-backend
-    build: ./backend
-    ports:
-      - "8000:8000"
-    # depends_on:
-    #   - db
-    environment:
-      - MYSQL_HOST=db
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=rootpassword
-      - MYSQL_DB=testdb
-    volumes:
-      - ./backend:/app
-
-  # db:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: rootpassword
-  #     MYSQL_DATABASE: testdb
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - db-data:/var/lib/mysql
-
-# volumes:
-#   db-data:
