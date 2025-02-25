@@ -81,6 +81,7 @@ const MessageTile = ({ message } ) => {
                     if (reason !== 'backdropClick') setOpenView(false) // Only if it isn't a backdrop click
                 }}
                 maxWidth={"lg"}
+                sx={{ minWidth: '900px', minHeight: '900px', objectFit: 'cover', my: 1 }}
             >
                 <DialogTitle id="scroll-dialog-title">
                     {message?.title}
@@ -91,13 +92,19 @@ const MessageTile = ({ message } ) => {
                     </div>
                 </DialogTitle>
                 <DialogContent dividers={true}>
+                    <Box
+                        component="img"
+                        src={message?.thumbnail ?? DEFAULT_IMAGE}
+                        alt="Thumbnail"
+                        sx={{ height: 200, margin: '0 auto', display: 'block', padding: '8px'}}
+                    />
                     <DialogContentText
                         ref={descriptionElementRef}
                         tabIndex={-1}
                     >
                         <Typography variant="body2">
-                            {/* {message?.description} */}
-                            {Array.from({ length: 10 }, () => message?.description).join("\n")}
+                            {message?.description}
+                            {/* {Array.from({ length: 10 }, () => message?.description).join("\n")} */}
                         </Typography>
                     </DialogContentText>
                 </DialogContent>
