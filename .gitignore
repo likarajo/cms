@@ -1,26 +1,25 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# ================================
+# Node Modules and Build Artifacts
+# ================================
+node_modules/
+dist/
 
-node_modules
-dist
-dist-ssr
-*.local
+# ================================
+# Python-Specific Files
+# ================================
+__pycache__/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ================================
+# Virtual Environments
+# ================================
+venv/
+
+# ================================
+# IDE Settings and Configurations
+# ================================
+.vscode/
+
+# ================================
+# OS-specific Files
+# ================================
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-venv

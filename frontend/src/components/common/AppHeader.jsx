@@ -37,7 +37,7 @@ const AppHeader = () => {
                 onClose={() => handleCloseMenu()}
             >
                 <MenuItem onClick={() => handleAddMessage()}>Add Message</MenuItem>
-                <MenuItem onClick={() => handleOpenApiDocs()}>API Docs&nbsp;<Launch fontSize='small'/></MenuItem>
+                <MenuItem onClick={() => handleOpenApiDocs()}>API Server&nbsp;<Launch fontSize='small'/></MenuItem>
             </Menu>
             <img src={logo}/>
             <Typography variant="subtitle1">Content Management System</Typography>
