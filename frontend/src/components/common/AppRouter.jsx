@@ -5,7 +5,7 @@ import PageNotFound from "@/components/common/PageNotFound";
 const AppRouter = () => {
     return (
         <BrowserRouter>
-            <div style={{minHeight: 'calc(100vh - 48px - 40px)'}}> {/* View height - header height - footer height */}
+            <div style={{minHeight: 'calc(100vh - 72px - 40px)', paddingTop: '24px'}}> {/* View height - header height - footer height */}
                 <Routes>
                     <Route path="/" element={<Messages />} />
                     <Route path="*" element={<PageNotFound />} />
