@@ -1,8 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
-import { CircularProgress, Container, Typography } from '@mui/material';
+import { CircularProgress, Container, Button, Grid2 } from '@mui/material';
+import { AddCircleOutline } from '@mui/icons-material';
 import { useMessageStore } from "@/redux/stores/messageStore";
 import { useSelector } from 'react-redux';
+import MessageTile from './MessageTile';
 
 const Messages = () => {
 
@@ -25,15 +27,19 @@ const Messages = () => {
         }
     }, [])
 
+    const [openNew, setOpenNew] = useState(false);
+
     return (
         isLoading ? <CircularProgress size="30px" /> :
-        <Container>
-            <Typography variant="h5" gutterBottom>
-                Messages
-            </Typography>
-            <Container>
-                {messages}
-            </Container>
+        <Container style={{margin: 0}}>
+            <Button variant="outlined" startIcon={<AddCircleOutline/>} size="small">
+                Add New
+            </Button>
+            <Grid2 container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }} style={{paddingTop: '24px'}}>
+                {messages.map((message, index) => (
+                    <MessageTile key={index} message={message}/>
+                ))}
+            </Grid2>
         </Container>
     )
 }

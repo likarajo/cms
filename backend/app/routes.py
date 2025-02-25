@@ -1,6 +1,7 @@
 """Application Server Routes"""
 import logging
 from flask import Blueprint, render_template, request, make_response
+import requests
 from app import app, db
 from app.utils import create_db_session
 from app.models import Message
@@ -45,27 +46,35 @@ def get_messages():
 def add_message():
     try:
         title = request.form.get('title')
-        content = request.form.get('content')
-        thumbnail = request.files.get('thumbnail')  # This will handle the uploaded image
+        description = request.form.get('description')
+        thumbnail = request.form.get('thumbnail')
+        tags = request.form.get('tags') 
 
-        if not title or not content:
-            return make_response({"msg": "Title and content are required"}, 400)
+        if not title or not description:
+            return make_response({"msg": "Title and description are required"}, 400)
         
-        # Precautionary server-side validation for thumbnail image
         if thumbnail:
-            if len(thumbnail.read()) > app.config.get('MAX_IMAGE_SIZE_MB') * 1024 * 1024:
+            # Download the image from the URL
+            response = requests.get(thumbnail, stream=True)
+            if response.status_code != 200:
+                return make_response({"msg": "Failed to fetch thumbnail image from URL"}, 400)
+            # Precautionary server-side validation for thumbnail image
+            image_format = response.headers.get('Content-Type')
+            if image_format not in app.config.get('ALLOWED_IMAGE_FORMATS'):
+                return make_response({"msg": f"Only {app.config.get('ALLOWED_IMAGE_FORMATS')} formats are allowed."}, 400)
+            image_size = len(response.content)
+            if image_size > app.config.get('MAX_IMAGE_SIZE_MB') * 1024 * 1024: # Convert MB to bytes
                 return make_response({"msg": f"Image size must be less than {app.config.get('MAX_IMAGE_SIZE_MB')} MB."}, 400)
-            thumbnail.seek(0)  # Reset file pointer after reading for size validation
-            if thumbnail.content_type not in app.config.get('ALLOWED_IMAGE_FORMATS'):
-                return make_response({"msg": f"Only {app.config.get('ALLOWED_IMAGE_FORMATS')} format are allowed."}, 400)
 
         db_session = create_db_session(app.config.get('SQLALCHEMY_DATABASE_URI'))
         new_message = Message(
             title=title, 
-            content=content
+            description=description
         )
         if thumbnail:
-            new_message.thumbnail = thumbnail.read() # Read the image as binary data
+            new_message.thumbnail = thumbnail
+        if tags:
+            new_message.tags = ','.join(tag.strip() for tag in tags.split(','))
         
         db.session.add(new_message)
         db.session.commit()

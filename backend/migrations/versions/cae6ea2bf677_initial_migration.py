@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('message',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=80), nullable=False),
-    sa.Column('content', sa.Text(), nullable=False),
+    sa.Column('description', sa.Text(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('title')
     )
