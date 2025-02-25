@@ -42,16 +42,34 @@ def get_messages():
 
 
 @messages.route("/messages", methods=["POST"])
-def create_message():
+def add_message():
     try:
-        data = request.json
+        title = request.form.get('title')
+        content = request.form.get('content')
+        thumbnail = request.files.get('thumbnail')  # This will handle the uploaded image
+
+        if not title or not content:
+            return make_response({"msg": "Title and content are required"}, 400)
+        
+        # Precautionary server-side validation for thumbnail image
+        if thumbnail:
+            if len(thumbnail.read()) > app.config.get('MAX_IMAGE_SIZE_MB') * 1024 * 1024:
+                return make_response({"msg": f"Image size must be less than {app.config.get('MAX_IMAGE_SIZE_MB')} MB."}, 400)
+            thumbnail.seek(0)  # Reset file pointer after reading for size validation
+            if thumbnail.content_type not in app.config.get('ALLOWED_IMAGE_FORMATS'):
+                return make_response({"msg": f"Only {app.config.get('ALLOWED_IMAGE_FORMATS')} format are allowed."}, 400)
+
         db_session = create_db_session(app.config.get('SQLALCHEMY_DATABASE_URI'))
         new_message = Message(
-            title=data["title"], 
-            content=data["content"]
+            title=title, 
+            content=content
         )
+        if thumbnail:
+            new_message.thumbnail = thumbnail.read() # Read the image as binary data
+        
         db.session.add(new_message)
         db.session.commit()
+        
         logging.info(f"Message added successfully: {new_message.title}")
         return make_response({"msg": f"Message added successfully: {new_message.title}"}, 201)
     except Exception as e:
