@@ -1,7 +1,9 @@
 """Application Server Routes"""
+import logging
 from flask import Blueprint, render_template, request, make_response
 from app import app, db
-from .models import Message
+from app.utils import create_db_session
+from app.models import Message
 
 
 main = Blueprint("main", __name__)
@@ -23,14 +25,37 @@ def home():
 
 @messages.route("/messages", methods=["GET"])
 def get_messages():
-    messages = Message.query.all()
-    data = [{"id": message.id, "title": message.title, "content": message.content} for message in messages]
-    return make_response({data: data}, 200)
+    try:
+        db_session = create_db_session(app.config.get('SQLALCHEMY_DATABASE_URI'))
+        qry = db_session.query(Message)
+        result = qry.all()
+        data = [record.to_dict() for record in result]
+        logging.info(f"Messages fetched successfully: {len(data)}")
+        return make_response({"data": data}, 200)
+    except Exception as e:
+        logging.exception(f"Error fetching messages: {str(e)}")
+        return make_response({"msg": "Error fetching messages"}, 500)
+    finally:
+        if db_session:
+            db_session.close()
+
 
 @messages.route("/messages", methods=["POST"])
 def create_message():
-    data = request.json
-    new_message = Message(title=data["title"], content=data["content"])
-    db.session.add(new_message)
-    db.session.commit()
-    return make_response({"message": f"Message added successfully: {new_message.title}"}, 201)
+    try:
+        data = request.json
+        db_session = create_db_session(app.config.get('SQLALCHEMY_DATABASE_URI'))
+        new_message = Message(
+            title=data["title"], 
+            content=data["content"]
+        )
+        db.session.add(new_message)
+        db.session.commit()
+        logging.info(f"Message added successfully: {new_message.title}")
+        return make_response({"message": f"Message added successfully: {new_message.title}"}, 201)
+    except Exception as e:
+        logging.exception(f"Error adding message: {str(e)}")
+        return make_response({"msg": "Error adding message"}, 500)
+    finally:
+        if db_session:
+            db_session.close()

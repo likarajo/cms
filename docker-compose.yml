@@ -9,7 +9,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/app:cached
     restart: always
 
   cms-web-ui:
@@ -20,8 +20,6 @@ services:
       - .env
     ports:
       - "4000:4000"
-    depends_on:
-      - cms-api
     volumes:
       - ./frontend:/app
       - /app/node_modules
