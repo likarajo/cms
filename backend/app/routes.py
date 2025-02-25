@@ -63,7 +63,7 @@ def add_message():
             if image_format not in app.config.get('ALLOWED_IMAGE_FORMATS'):
                 return make_response({"msg": f"Only {app.config.get('ALLOWED_IMAGE_FORMATS')} formats are allowed."}, 400)
             image_size = len(response.content)
-            if image_size > app.config.get('MAX_IMAGE_SIZE_MB') * 1024 * 1024: # Convert MB to bytes
+            if image_size > int(app.config.get('MAX_IMAGE_SIZE_MB')) * 1024 * 1024: # Convert MB to bytes
                 return make_response({"msg": f"Image size must be less than {app.config.get('MAX_IMAGE_SIZE_MB')} MB."}, 400)
 
         db_session = create_db_session(app.config.get('SQLALCHEMY_DATABASE_URI'))
