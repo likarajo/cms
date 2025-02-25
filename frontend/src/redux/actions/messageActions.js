@@ -1,21 +1,23 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { API_BASE_URL, API_ROUTES, MAX_IMAGE_SIZE_MB, ALLOWED_IMAGE_FORMATS } from "@/constants";
+import { API_BASE_URL, API_ROUTES } from "@/constants";
+import axios from 'axios';
 
 export const fetchMessages = createAsyncThunk ('messages/fetchMessages', async() => {
   try {
-    const api = `${API_BASE_URL}/${API_ROUTES.MESSAGES}`;
+    const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}`;
     
     console.log('Calling', api)
-    const response = await fetch(api, {
+    const response = await axios({
       method: 'GET',
-      headers: {'Content-Type': 'application/json'},
+      url: api,
+      headers: { 'Content-Type': 'application/json' },
     });
     
-    if (!response.ok) {
+    if (!response.status === 200) {
       throw new Error(`Failed to fetch messages: ${response.status}`);
     }
     
-    const result = await response.json();
+    const result = await response?.data;
     let data = await result?.data ?? [];
     console.log("Successfully fetched messages", data?.length)
     return data
@@ -25,22 +27,30 @@ export const fetchMessages = createAsyncThunk ('messages/fetchMessages', async()
   }
 });
 
-export const addMessage = createAsyncThunk('messages/addMessage', async ({ title, description, thumbnail }) => {
+export const fetchThumbnail = createAsyncThunk ('messages/fetchThumbnail', async(thumbnail) => {
   try {
+    console.log('Calling', thumbnail) 
+    const response = await axios.get(thumbnail, { responseType: 'blob' });
     
-    if(thumbnail){
-      // Client-side validation for thumbnail image
-      if (thumbnail.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-        alert(`Image size must be less than ${MAX_IMAGE_SIZE_MB} MB.`);
-        return;
-      }
-      if (!ALLOWED_IMAGE_FORMATS.includes(thumbnail.type)) {
-        alert("Only PNG and JPEG images are allowed.");
-        return;
-      }
+    if (!response.status === 200 || response.data.type === 'text/html') {
+      throw new Error(`Failed to fetch thumbnail: ${response.status} ${response.data.type}`);
     }
+    
+    const blob = await response.data;
+    const data = {size: blob.size, type: blob.type }
+    console.log("Successfully fetched thumbnail", data)
+    return data
+  } catch (error) {
+    console.error('Error fetching thumbnail:', error);
+    return null;
+  }
+});
 
-    const api = `${API_BASE_URL}/${API_ROUTES.MESSAGES}`;
+export const addMessage = createAsyncThunk('messages/addMessage', async (message) => {
+  try {
+    const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}`;
+
+    const { title, description, thumbnail, tags } = message;
     
     const formData = new FormData();
     formData.append('title', title);
@@ -49,21 +59,29 @@ export const addMessage = createAsyncThunk('messages/addMessage', async ({ title
     if(thumbnail){
       formData.append('thumbnail', thumbnail);
     }
+
+    if(tags){
+      formData.append('tags', tags);
+    }
   
     console.log('Calling', api, formData)
-    const response = await fetch(api, {
+    const response = await axios({
       method: 'POST',
-      body: formData,
+      url: api,
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
 
-    if (!response.ok) {
+    if (!response.status === 201) {
       throw new Error(`Failed to add message: ${response.status}`);
     }
 
-    const result = await response.json();
-    return result;
+    console.log('Successfully added message')
+    return true
   } catch (error) {
     console.error('Error adding message:', error);
-    return null;
+    return false
   }
 });

@@ -73,10 +73,13 @@ const MessageTile = ({ message } ) => {
                     </Typography>
                 </CardContent>
             </Card>
+            
             {openView &&
             <Dialog
                 open={openView}
-                onClose={() => setOpenView(false)}
+                onClose={(_, reason) => {
+                    if (reason !== 'backdropClick') setOpenView(false) // Only if it isn't a backdrop click
+                }}
                 maxWidth={"lg"}
             >
                 <DialogTitle id="scroll-dialog-title">
@@ -99,11 +102,11 @@ const MessageTile = ({ message } ) => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenView(false)} variant="outlined" startIcon={<Close/>}>Close</Button>
                     <Button onClick={() => setOpenEdit(true)} startIcon={<Edit/>}>Edit</Button>
+                    <Button onClick={() => setOpenView(false)} variant="outlined" startIcon={<Close/>}>Close</Button>
                 </DialogActions>
-            </Dialog>
-            }
+            </Dialog>}
+        
         </React.Fragment>
     );
 }
