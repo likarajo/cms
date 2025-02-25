@@ -19,7 +19,7 @@ def create_app():
     migrate.init_app(app, db)
 
     with app.app_context():
-        from app import models # Import models and create tables based on models if they don't exist
+        from app import models # Import models
 
         from app.routes import main, messages # Import routes and register blueprints
         app.register_blueprint(main)
