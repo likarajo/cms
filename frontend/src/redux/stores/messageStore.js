@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
-import { fetchMessages, fetchThumbnail, addMessage, editMessage } from "@/redux/actions/messageActions";
+import { fetchMessages, fetchThumbnail, fetchVideo, addMessage, editMessage } from "@/redux/actions/messageActions";
 import { setMessages } from "@/redux/reducers/messageReducer";
-import { MAX_IMAGE_SIZE_MB, ALLOWED_IMAGE_FORMATS } from "@/constants";
+import { MAX_IMAGE_SIZE_MB, ALLOWED_IMAGE_FORMATS, ALLOWED_VIDEO_FORMATS } from "@/constants";
 import { isValidURL } from "@/utils/common";
 
 export const useMessageStore = () => {
@@ -28,7 +28,7 @@ export const useMessageStore = () => {
         if(message?.thumbnail){
             try {
                 if(!isValidURL(message?.thumbnail)) {
-                    return {valid: false, attribute: "thumbnail", note: "URL validation failed"}
+                    return {valid: false, attribute: "thumbnail", note: "Thumbnail URL validation failed"}
                 }
                 let data = await dispatch(fetchThumbnail(message?.thumbnail)).unwrap()
                 
@@ -48,6 +48,27 @@ export const useMessageStore = () => {
             
             } catch (error){
                 return {valid: false, attribute: "thumbnail", note: `Error validating Thumbnail Image ${error}`}
+            }
+        }
+
+        if(message?.video){
+            try {
+                if(!isValidURL(message?.video)) {
+                    return {valid: false, attribute: "video", note: "Video URL validation failed"}
+                }
+                let data = await dispatch(fetchVideo(message?.video)).unwrap()
+
+                if(!data){
+                    return {valid: false, attribute: "video", note: "Error validating video"}
+                }
+
+                const videoFormat = data.type;
+                if (!ALLOWED_VIDEO_FORMATS.split(",").includes(videoFormat)) {
+                    return {valid: false, attribute: "video", note: `Only ${ALLOWED_VIDEO_FORMATS} formats are allowed`}
+                }
+
+            } catch (error){
+                return {valid: false, attribute: "video", note: `Error validating Video ${error}`}
             }
         }
 

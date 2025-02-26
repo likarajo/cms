@@ -35,6 +35,7 @@ const Messages = () => {
         "title": null,
         "description": null,
         "thumbnail": null,
+        "video": null,
         "tags": [],
     }
     const [newMessage, setNewMessage] = useState(MESSAGE_PAYLOAD);
@@ -179,6 +180,20 @@ const Messages = () => {
                         onChange={debounce((e) => {
                             setNewMessage((prev) => ({...prev, thumbnail: e.target.value}));
                             if(validation?.valid===false && validation?.attribute === "thumbnail") {
+                                setValidation(VALIDATION_PAYLOAD); // reset
+                            }
+                        }, 300)} // Debounce to avoid excessive re-renders
+                    />
+                    <TextField 
+                        label={"Video URL"} 
+                        variant="outlined" 
+                        margin="normal" 
+                        fullWidth
+                        error={validation?.valid===false && validation?.attribute === "video"}
+                        helperText={validation?.valid===false && validation?.attribute === "video" ? validation?.note : null}
+                        onChange={debounce((e) => {
+                            setNewMessage((prev) => ({...prev, video: e.target.value}));
+                            if(validation?.valid===false && validation?.attribute === "video") {
                                 setValidation(VALIDATION_PAYLOAD); // reset
                             }
                         }, 300)} // Debounce to avoid excessive re-renders
