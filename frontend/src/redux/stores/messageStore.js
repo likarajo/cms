@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { fetchMessages, fetchThumbnail, addMessage } from "@/redux/actions/messageActions";
+import { fetchMessages, fetchThumbnail, addMessage, editMessage } from "@/redux/actions/messageActions";
 import { setMessages } from "@/redux/reducers/messageReducer";
 import { MAX_IMAGE_SIZE_MB, ALLOWED_IMAGE_FORMATS } from "@/constants";
 import { isValidURL } from "@/utils/common";
@@ -64,9 +64,20 @@ export const useMessageStore = () => {
         }
     }
 
+    const handleUpdateMessage = async (message) => {
+        try {
+            const done = await dispatch(editMessage(message)).unwrap()
+            return done
+        } catch(error) {
+            console.error(error);
+            return false
+        }
+    }
+
     return { 
         handleFetchMessages,
         handleValidateMessage,
         handleAddMessage,
+        handleUpdateMessage,
     };
 }
