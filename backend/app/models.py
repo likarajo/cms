@@ -2,6 +2,7 @@
 from app import db
 from sqlalchemy import ForeignKey, Table, Text, Column, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 
 # Association table for many-to-many relationship
@@ -29,13 +30,16 @@ class Message(db.Model):
     description = Column(Text, nullable=False)
     thumbnail = Column(Text, nullable=True) # image URL
     video = Column(Text, nullable=True) # video URL
+    transcript = Column(Text, nullable=True) # LONGTEXT for MySQL, TEXT for other databases, S3 for larger files
     tags = relationship('Tag', secondary=message_tags, back_populates='messages')
 
     def __init__(self, title, description, thumbnail=None, video=None, tags=None):
         self.title = title
         self.description = description
         self.thumbnail = thumbnail
-        self.video = video
+        if video:
+            self.video = video
+            self.transcript = ""
         if tags:
             self.tags = [
                 Tag.query.filter_by(name=tag.strip()).first() # Retrieve
@@ -49,6 +53,7 @@ class Message(db.Model):
             'description': self.description,
             'thumbnail': self.thumbnail,
             'video': self.video,
+            'transcript': self.transcript,
             'tags': [tag.name for tag in self.tags]
         }
 

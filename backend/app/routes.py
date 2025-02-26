@@ -113,8 +113,12 @@ def add_message():
                 video_format = response.headers.get('Content-Type')
                 if not video_format or video_format not in app.config.get('ALLOWED_VIDEO_FORMATS'):
                     return make_response({"msg": f"Only {app.config.get('ALLOWED_VIDEO_FORMATS')} formats are allowed."}, 400)
+                transcript = "" #TODO: transcribe video
             else:
                 video = None
+                transcript = None
+        else:
+            transcript = None
 
         tags = data.get('tags', [])
 
@@ -126,6 +130,7 @@ def add_message():
             new_message.thumbnail = thumbnail
         if video:
             new_message.video = video
+            new_message.transcript = transcript
         if tags:
             tags_list = []
             for tag in tags:
@@ -210,10 +215,13 @@ def update_message():
                 if not video_format or video_format not in app.config.get('ALLOWED_VIDEO_FORMATS'):
                     return make_response({"msg": f"Only {app.config.get('ALLOWED_VIDEO_FORMATS')} formats are allowed."}, 400)
                 message.video = video
+                message.transcript = "" #TODO: transcribe video
             else:
                 message.video = None
+                message.transcript = None
         else:
             message.video = None
+            message.transcript = None
 
         tags = data.get('tags', [])
         if tags:
