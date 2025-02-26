@@ -31,7 +31,6 @@ const Messages = () => {
     }, [])
 
     const [openAdd, setOpenAdd] = useState(false);
-    
     const MESSAGE_PAYLOAD = {
         "title": null,
         "description": null,
@@ -39,10 +38,9 @@ const Messages = () => {
         "tags": null,
     }
     const [newMessage, setNewMessage] = useState(MESSAGE_PAYLOAD);
-
     const [chips, setChips] = useState([]);
 
-    const handleInputChange = (e) => {
+    const handleTagsInputChange = (e) => {
         setNewMessage((prev) => ({...prev, tags: e.target.value}));
         let updatedChips = new Set();
         e.target.value.split(',')?.map((item) => {
@@ -58,7 +56,7 @@ const Messages = () => {
 
     const handleCloseAdd = () => {
         setOpenAdd(false);
-        setNewMessage(MESSAGE_PAYLOAD); // 
+        setNewMessage(MESSAGE_PAYLOAD); // reset
         setChips([]); // reset
         setValidation(VALIDATION_PAYLOAD); // reset
         setValidating(false);
@@ -107,7 +105,7 @@ const Messages = () => {
                     Add New
                 </Button>
                 <Grid2 container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }} style={{paddingTop: '24px'}}>
-                    {messages.map((message, index) => (
+                    {messages?.map((message, index) => (
                         <MessageTile key={index} message={message}/>
                     ))}
                 </Grid2>
@@ -176,7 +174,7 @@ const Messages = () => {
                         margin="normal" 
                         fullWidth
                         helperText="Enter Tags comma-separated"
-                        onChange={(e) => handleInputChange(e)}
+                        onChange={(e) => handleTagsInputChange(e)}
                     />
                     <Stack direction="row" spacing={1}>
                         {chips.map((chip, index) => (

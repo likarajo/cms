@@ -22,7 +22,7 @@ class Message(db.Model):
             'title': self.title,
             'description': self.description,
             'thumbnail': self.thumbnail,
-            'tags': self.tags.split(',') if self.tags else [] # convert to list
+            'tags': self.tags
         }
 
     def __repr__(self):

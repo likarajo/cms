@@ -48,10 +48,10 @@ export const fetchThumbnail = createAsyncThunk ('messages/fetchThumbnail', async
 
 export const addMessage = createAsyncThunk('messages/addMessage', async (message) => {
   try {
+    const { title, description, thumbnail, tags } = message;
+
     const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}`;
 
-    const { title, description, thumbnail, tags } = message;
-    
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
@@ -64,7 +64,7 @@ export const addMessage = createAsyncThunk('messages/addMessage', async (message
       formData.append('tags', tags);
     }
   
-    console.log('Calling', api, formData)
+    console.log('Calling', api, Object.fromEntries(formData.entries()))
     const response = await axios({
       method: 'POST',
       url: api,
@@ -82,6 +82,50 @@ export const addMessage = createAsyncThunk('messages/addMessage', async (message
     return true
   } catch (error) {
     console.error('Error adding message:', error);
+    return false
+  }
+});
+
+export const editMessage = createAsyncThunk('messages/editMessage', async (message) => {
+  try {
+    const { id, title, description, thumbnail, tags } = message;
+
+    const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}?id=${id}`;
+    
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    
+    if(thumbnail){
+      formData.append('thumbnail', thumbnail);
+    } else {
+      formData.append('thumbnail', undefined);
+    }
+
+    if(tags){
+      formData.append('tags', tags);
+    } else {
+      formData.append('tags', undefined);
+    }
+  
+    console.log('Calling', api, Object.fromEntries(formData.entries()))
+    const response = await axios({
+      method: 'PUT',
+      url: api,
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (!response.status === 200) {
+      throw new Error(`Failed to edit message: ${response.status}`);
+    }
+
+    console.log('Successfully edited message', title)
+    return true
+  } catch (error) {
+    console.error('Error editing message:', error);
     return false
   }
 });
