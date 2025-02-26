@@ -13,7 +13,7 @@ export const fetchMessages = createAsyncThunk ('messages/fetchMessages', async()
       headers: { 'Content-Type': 'application/json' },
     });
     
-    if (!response.status === 200) {
+    if (response.status !== 200) {
       throw new Error(`Failed to fetch messages: ${response.status}`);
     }
     
@@ -32,7 +32,7 @@ export const fetchThumbnail = createAsyncThunk ('messages/fetchThumbnail', async
     console.log('Calling', thumbnail) 
     const response = await axios.get(thumbnail, { responseType: 'blob' });
     
-    if (!response.status === 200 || response.data.type === 'text/html') {
+    if (response.status !== 200 || response.data.type === 'text/html') {
       throw new Error(`Failed to fetch thumbnail: ${response.status} ${response.data.type}`);
     }
     
@@ -46,9 +46,27 @@ export const fetchThumbnail = createAsyncThunk ('messages/fetchThumbnail', async
   }
 });
 
+export const fetchVideo = createAsyncThunk ('messages/fetchVideo', async(video) => {
+  try {
+    console.log('Calling', video) 
+    const response = await axios.head(video);
+    
+    if (response.status !== 200) {
+      throw new Error(`Failed to fetch video: ${response.status}`);
+    }
+
+    const data = {type: response.headers['content-type'] }
+    console.log("Successfully fetched video", data)
+    return data
+  } catch (error) {
+    console.error('Error fetching video type', error);
+    return null;
+  }
+});
+
 export const addMessage = createAsyncThunk('messages/addMessage', async (message, { rejectWithValue }) => {
   try {
-    const { title, description, thumbnail, tags } = message;
+    const { title, description, thumbnail, video, tags } = message;
 
     const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}`;
 
@@ -56,6 +74,7 @@ export const addMessage = createAsyncThunk('messages/addMessage', async (message
       title: title,
       description: description,
       thumbnail: thumbnail,
+      video: video,
       tags: tags
     }
   
@@ -89,7 +108,7 @@ export const addMessage = createAsyncThunk('messages/addMessage', async (message
 
 export const editMessage = createAsyncThunk('messages/editMessage', async (message, { rejectWithValue }) => {
   try {
-    const { id, title, description, thumbnail, tags } = message;
+    const { id, title, description, thumbnail, video, tags } = message;
 
     const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}?id=${id}`;
     
@@ -97,6 +116,7 @@ export const editMessage = createAsyncThunk('messages/editMessage', async (messa
       title: title,
       description: description,
       thumbnail: thumbnail,
+      video: video,
       tags: tags
     }
   

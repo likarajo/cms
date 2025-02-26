@@ -3,8 +3,7 @@ import logging
 import sys
 from flask import Blueprint, json, render_template, request, make_response
 import requests
-from sqlalchemy import func, or_
-from app import app, db
+from app import app
 from app.utils import create_db_session
 from app.models import Message, Tag, message_tags
 from urllib.parse import urlparse
@@ -98,7 +97,25 @@ def add_message():
                 image_size = len(response.content)
                 if image_size > int(app.config.get('MAX_IMAGE_SIZE_MB')) * 1024 * 1024: # Convert MB to bytes
                     return make_response({"msg": f"Image size must be less than {app.config.get('MAX_IMAGE_SIZE_MB')} MB."}, 400)
-                
+            else:
+                thumbnail = None
+        
+        video = data.get('video', None)
+        if video:
+            # Validate if the video is a valid URL
+            parsed_url = urlparse(video)
+            if all([parsed_url.scheme, parsed_url.netloc]):
+                # Download the video from the URL
+                response = requests.head(video)
+                if response.status_code != 200:
+                    return make_response({"msg": "Failed to fetch video from URL"}, 400)
+                # Precautionary server-side validation for thumbnail image
+                video_format = response.headers.get('Content-Type')
+                if not video_format or video_format not in app.config.get('ALLOWED_VIDEO_FORMATS'):
+                    return make_response({"msg": f"Only {app.config.get('ALLOWED_VIDEO_FORMATS')} formats are allowed."}, 400)
+            else:
+                video = None
+
         tags = data.get('tags', [])
 
         new_message = Message(
@@ -107,6 +124,8 @@ def add_message():
         )
         if thumbnail:
             new_message.thumbnail = thumbnail
+        if video:
+            new_message.video = video
         if tags:
             tags_list = []
             for tag in tags:
@@ -172,8 +191,29 @@ def update_message():
                 if image_size > int(app.config.get('MAX_IMAGE_SIZE_MB')) * 1024 * 1024: # Convert MB to bytes
                     return make_response({"msg": f"Image size must be less than {app.config.get('MAX_IMAGE_SIZE_MB')} MB."}, 400)
                 message.thumbnail = thumbnail
+            else: 
+                message.thumbnail = None
         else:
             message.thumbnail = None
+
+        video = data.get('video', None)
+        if video:
+            # Validate if the video is a valid URL
+            parsed_url = urlparse(video)
+            if all([parsed_url.scheme, parsed_url.netloc]):
+                # Download the video from the URL
+                response = requests.head(video)
+                if response.status_code != 200:
+                    return make_response({"msg": "Failed to fetch video from URL"}, 400)
+                # Precautionary server-side validation for thumbnail image
+                video_format = response.headers.get('Content-Type')
+                if not video_format or video_format not in app.config.get('ALLOWED_VIDEO_FORMATS'):
+                    return make_response({"msg": f"Only {app.config.get('ALLOWED_VIDEO_FORMATS')} formats are allowed."}, 400)
+                message.video = video
+            else:
+                message.video = None
+        else:
+            message.video = None
 
         tags = data.get('tags', [])
         if tags:

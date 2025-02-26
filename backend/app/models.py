@@ -28,12 +28,14 @@ class Message(db.Model):
     title = Column(String(80), unique=True, nullable=False)
     description = Column(Text, nullable=False)
     thumbnail = Column(Text, nullable=True) # image URL
+    video = Column(Text, nullable=True) # video URL
     tags = relationship('Tag', secondary=message_tags, back_populates='messages')
 
-    def __init__(self, title, description, thumbnail=None, tags=None):
+    def __init__(self, title, description, thumbnail=None, video=None, tags=None):
         self.title = title
         self.description = description
         self.thumbnail = thumbnail
+        self.video = video
         if tags:
             self.tags = [
                 Tag.query.filter_by(name=tag.strip()).first() # Retrieve
@@ -46,6 +48,7 @@ class Message(db.Model):
             'title': self.title,
             'description': self.description,
             'thumbnail': self.thumbnail,
+            'video': self.video,
             'tags': [tag.name for tag in self.tags]
         }
 

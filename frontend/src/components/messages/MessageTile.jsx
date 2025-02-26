@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react"
 import { debounce } from 'lodash';
-import { Card, CardContent, Typography, Box, Chip, Badge, Stack, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField, LinearProgress, CircularProgress } from '@mui/material';
+import { Card, CardContent, Typography, Box, Chip, Badge, Stack, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField, LinearProgress, CircularProgress, IconButton } from '@mui/material';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
-import { Add, Close, Edit, Check } from '@mui/icons-material';
+import { Add, Close, Edit, Check, PlayArrow } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { DEFAULT_IMAGE } from "@/constants";
 import { useMessageStore } from "@/redux/stores/messageStore";
@@ -148,16 +148,35 @@ const MessageTile = ({ message } ) => {
                     <Typography 
                         variant="h5" 
                         component="div" 
-                        style={{paddingTop: '4px'}}
+                        style={{paddingTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}
                     >
                         {message?.title}
                     </Typography>
-                    <Box
-                        component="img"
-                        src={message?.thumbnail ?? DEFAULT_IMAGE}
-                        alt="Thumbnail"
-                        sx={{ width: '100%', height: 150, objectFit: 'cover', my: 1 }}
-                    />
+                    <div style={{position: 'relative'}}>
+                        <Box
+                            component="img"
+                            src={message?.thumbnail ?? DEFAULT_IMAGE}
+                            alt="Thumbnail"
+                            sx={{ width: '100%', objectFit: 'cover', my: 1 }}
+                        />
+                        {message?.video && (
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)', //add a semi-transparent background behind the icon
+                                borderRadius: '50%',
+                                zIndex: 1,
+                            }}
+                        >
+                            <IconButton sx={{ color: 'white' }}>
+                                <PlayArrow />
+                            </IconButton>
+                        </Box>
+                    )}
+                    </div>
                     <Typography 
                         variant="body2" 
                         sx={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
@@ -198,12 +217,32 @@ const MessageTile = ({ message } ) => {
                     </div>
                 </DialogTitle>
                 <DialogContent dividers={true}>
-                    <Box
-                        component="img"
-                        src={message?.thumbnail ?? DEFAULT_IMAGE}
-                        alt="Thumbnail"
-                        sx={{ height: 200, margin: '0 auto', display: 'block', padding: '8px'}}
-                    />
+                    <Box sx={{ position: 'relative', display: 'block', margin: '0 auto' }}>
+                        <Box
+                            component="img"
+                            src={message?.thumbnail ?? DEFAULT_IMAGE}
+                            alt="Thumbnail"
+                            sx={{ height: 200, margin: '0 auto', display: 'block', padding: '8px' }}
+                        />
+                        {message?.video && (
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)', //add a semi-transparent background behind the icon
+                                    borderRadius: '50%',
+                                    padding: '8px',
+                                    zIndex: 1,
+                                }}
+                            >
+                                <IconButton sx={{ color: 'white' }} onClick={() => window.open(message?.video)}>
+                                    <PlayArrow />
+                                </IconButton>
+                            </Box>
+                        )}
+                    </Box>
                     <DialogContentText
                         ref={descriptionElementRef}
                         tabIndex={-1}
@@ -259,6 +298,21 @@ const MessageTile = ({ message } ) => {
                         onChange={debounce((e) => {
                             setUpdatedMessage((prev) => ({...prev, thumbnail: e.target.value}));
                             if(validation?.valid===false && validation?.attribute === "thumbnail") {
+                                setValidation(VALIDATION_PAYLOAD); // reset
+                            }
+                        }, 300)} // Debounce to avoid excessive re-renders
+                    />
+                    <TextField 
+                        label={"Video URL"} 
+                        variant="outlined" 
+                        margin="normal" 
+                        fullWidth
+                        error={validation?.valid===false && validation?.attribute === "video"}
+                        helperText={validation?.valid===false && validation?.attribute === "video" ? validation?.note : null}
+                        defaultValue={updatedMessage?.video}
+                        onChange={debounce((e) => {
+                            setUpdatedMessage((prev) => ({...prev, video: e.target.value}));
+                            if(validation?.valid===false && validation?.attribute === "video") {
                                 setValidation(VALIDATION_PAYLOAD); // reset
                             }
                         }, 300)} // Debounce to avoid excessive re-renders
