@@ -110,7 +110,7 @@ def add_message():
         if tags:
             tags_list = []
             for tag in tags:
-                tag = tag.strip().lower()
+                tag = tag.strip()
                 existing_tag = db_session.query(Tag).filter_by(name=tag).first()
                 if existing_tag:
                     tags_list.append(existing_tag)
@@ -179,7 +179,7 @@ def update_message():
         if tags:
             tags_list = []
             for tag in tags:
-                tag = tag.strip().lower()
+                tag = tag.strip()
                 existing_tag = db_session.query(Tag).filter_by(name=tag).first()
                 if existing_tag:
                     tags_list.append(existing_tag)

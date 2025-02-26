@@ -69,7 +69,7 @@ const MessageTile = ({ message } ) => {
     const [validation, setValidation] = useState(VALIDATION_PAYLOAD);
     const [validating, setValidating] = useState(false);
 
-    const handleCloseEdit = () => {
+    const handleCloseEdit = async () => {
         setOpenEdit(false);
         setUpdatedMessage(message); // reset
         setTags(message?.tags); // reset
@@ -93,11 +93,13 @@ const MessageTile = ({ message } ) => {
             } else {
                 setIsLoading(true);
                 try {
+                    let updatedMessageTitle = updatedMessage?.title;
                     console.log("Updating Message", updatedMessage)
                     const done = await handleUpdateMessage(updatedMessage)
                     if(done){
-                        handleCloseEdit();
+                        await handleCloseEdit();
                         await handleFetchMessages();
+                        alert(`Successfully Updated the Message: ${updatedMessageTitle}`)
                     } else {
                         console.error("Updating Message failed", updatedMessage)
                     }
@@ -114,7 +116,18 @@ const MessageTile = ({ message } ) => {
 
     return (
         <React.Fragment>
-            {isLoading && <CircularProgress size="30px" />}
+            {isLoading && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 1, // ensures the loader is on top
+                    }}
+                >
+                    <CircularProgress size="30px" />
+                </div>
+            )}
             <Card 
                 sx={{ 
                     width: 300, 

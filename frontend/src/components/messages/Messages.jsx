@@ -57,7 +57,7 @@ const Messages = () => {
     const [validation, setValidation] = useState(VALIDATION_PAYLOAD);
     const [validating, setValidating] = useState(false);
 
-    const handleCloseAdd = () => {
+    const handleCloseAdd = async () => {
         setOpenAdd(false);
         setNewMessage(MESSAGE_PAYLOAD); // reset
         setTags([]); // reset
@@ -81,11 +81,13 @@ const Messages = () => {
             } else {
                 setIsLoading(true);
                 try {
+                    let newMessageTitle = newMessage?.title;
                     console.log("Adding New Message", newMessage)
                     const done = await handleAddMessage(newMessage)
                     if(done){
-                        handleCloseAdd();
+                        await handleCloseAdd();
                         await handleFetchMessages();
+                        alert(`Successfully Created the Message: ${newMessageTitle}`)
                     } else {
                         console.error("Adding New Message failed", newMessage)
                     }
@@ -102,7 +104,18 @@ const Messages = () => {
 
     return (
         <React.Fragment>
-            {isLoading ? <CircularProgress size="30px" /> :
+            {isLoading && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 1, // ensures the loader is on top
+                    }}
+                >
+                    <CircularProgress size="30px" />
+                </div>
+            )}
             <Container style={{margin: 0}}>
                 <Button onClick={() => setOpenAdd(true)} variant="outlined" startIcon={<AddCircleOutline/>} size="small">
                     Add New
@@ -112,7 +125,7 @@ const Messages = () => {
                         <MessageTile key={index} message={message}/>
                     ))}
                 </Grid2>
-            </Container>}
+            </Container>
             
             {openAdd &&
             <Dialog
