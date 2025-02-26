@@ -46,7 +46,7 @@ export const fetchThumbnail = createAsyncThunk ('messages/fetchThumbnail', async
   }
 });
 
-export const addMessage = createAsyncThunk('messages/addMessage', async (message) => {
+export const addMessage = createAsyncThunk('messages/addMessage', async (message, { rejectWithValue }) => {
   try {
     const { title, description, thumbnail, tags } = message;
 
@@ -69,19 +69,25 @@ export const addMessage = createAsyncThunk('messages/addMessage', async (message
       },
     });
 
-    if (!response.status === 201) {
-      throw new Error(`Failed to add message: ${response.status}`);
+    if (response.status !== 201) {
+      throw new Error(`Failed to add message: Status code: ${response.status}`);
     }
 
-    console.log('Successfully added message')
+    console.log('Successfully added message', title)
     return true
   } catch (error) {
     console.error('Error adding message:', error);
-    return false
+    const errorMessage = (
+      error.response?.data?.message
+      || error.response?.data?.msg
+      || error.message
+      || 'An unknown error occurred'
+    );
+    return rejectWithValue(errorMessage);
   }
 });
 
-export const editMessage = createAsyncThunk('messages/editMessage', async (message) => {
+export const editMessage = createAsyncThunk('messages/editMessage', async (message, { rejectWithValue }) => {
   try {
     const { id, title, description, thumbnail, tags } = message;
 
@@ -104,14 +110,19 @@ export const editMessage = createAsyncThunk('messages/editMessage', async (messa
       },
     });
 
-    if (!response.status === 200) {
-      throw new Error(`Failed to edit message: ${response.status}`);
+    if (response.status !== 200) {
+      throw new Error(`Failed to edit message: Status code: ${response.status}`);
     }
 
     console.log('Successfully edited message', title)
     return true
   } catch (error) {
-    console.error('Error editing message:', error);
-    return false
+    const errorMessage = (
+      error.response?.data?.message
+      || error.response?.data?.msg
+      || error.message
+      || 'An unknown error occurred'
+    );
+    return rejectWithValue(errorMessage);
   }
 });
