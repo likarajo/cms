@@ -35,20 +35,23 @@ const Messages = () => {
         "title": null,
         "description": null,
         "thumbnail": null,
-        "tags": null,
+        "tags": [],
     }
     const [newMessage, setNewMessage] = useState(MESSAGE_PAYLOAD);
-    const [chips, setChips] = useState([]);
+    const [tags, setTags] = useState([]);
 
     const handleTagsInputChange = (e) => {
-        setNewMessage((prev) => ({...prev, tags: e.target.value}));
-        let updatedChips = new Set();
+        let updatedTags = new Set();
         e.target.value.split(',')?.map((item) => {
-            let chip = item.trim()
-            if(chip?.length > 0) updatedChips.add(chip)  // Trim each chip to remove leading and trailing whitespace
+            let tag = item.trim()
+            if(tag?.length > 0) updatedTags.add(tag)  // Trim each to remove leading and trailing whitespace
         })
-        setChips(Array.from(updatedChips))
+        setTags(Array.from(updatedTags))
     };
+
+    useEffect (() => {
+        setNewMessage((prev) => ({...prev, tags: tags}));
+    }, [tags])
     
     const VALIDATION_PAYLOAD = {valid: null, attribute: null, note: null};
     const [validation, setValidation] = useState(VALIDATION_PAYLOAD);
@@ -57,7 +60,7 @@ const Messages = () => {
     const handleCloseAdd = () => {
         setOpenAdd(false);
         setNewMessage(MESSAGE_PAYLOAD); // reset
-        setChips([]); // reset
+        setTags([]); // reset
         setValidation(VALIDATION_PAYLOAD); // reset
         setValidating(false);
     }
@@ -177,7 +180,7 @@ const Messages = () => {
                         onChange={(e) => handleTagsInputChange(e)}
                     />
                     <Stack direction="row" spacing={1}>
-                        {chips.map((chip, index) => (
+                        {tags.map((chip, index) => (
                             <Chip key={index} label={chip} variant="outlined" size="small"/>
                         ))}
                     </Stack>

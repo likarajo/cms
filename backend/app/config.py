@@ -9,4 +9,4 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.getenv("SECRET_KEY", "secret")
     MAX_IMAGE_SIZE_MB = os.getenv("VITE_MAX_IMAGE_SIZE_MB", 5)
-    ALLOWED_IMAGE_FORMATS = os.getenv("VITE_ALLOWED_IMAGE_FORMATS").split(",")
+    ALLOWED_IMAGE_FORMATS = os.getenv("VITE_ALLOWED_IMAGE_FORMATS", "").split(",")

@@ -16,24 +16,15 @@ const MessageTile = ({ message } ) => {
         handleFetchMessages,
     } = useMessageStore();
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [updatedMessage, setUpdatedMessage] = useState(message);
+    const [tags, setTags] = useState(message.tags);
+
     useEffect(() => {
         setUpdatedMessage(message);
-        setChips((message.tags ?? "").split(","))
+        setTags(message.tags);
     }, [message])
-
-    const [isLoading, setIsLoading] = useState(false);
-
-    const TagsTooltip = styled(({ className, ...props }) => (
-        <Tooltip {...props} classes={{ popper: className }} style={{cursor: "pointer"}} />
-    ))(({ theme }) => ({
-        [`& .${tooltipClasses.tooltip}`]: {
-          backgroundColor: theme.palette.common.white,
-          color: 'rgba(0, 0, 0, 0.87)',
-          boxShadow: theme.shadows[1],
-          fontSize: 14,
-        },
-    }));
-
+    
     const [elevated, setElevated] = useState(false);
     const [openView, setOpenView] = useState(false);
 
@@ -47,19 +38,32 @@ const MessageTile = ({ message } ) => {
         }
     }, [openView]);
 
-    const [openEdit, setOpenEdit] = useState(false);
-    const [updatedMessage, setUpdatedMessage] = useState(message);
-    const [chips, setChips] = useState((message.tags ?? "").split(","));
+    const TagsTooltip = styled(({ className, ...props }) => (
+        <Tooltip {...props} classes={{ popper: className }} style={{cursor: "pointer"}} />
+    ))(({ theme }) => ({
+        [`& .${tooltipClasses.tooltip}`]: {
+          backgroundColor: theme.palette.common.white,
+          color: 'rgba(0, 0, 0, 0.87)',
+          boxShadow: theme.shadows[1],
+          fontSize: 14,
+        },
+    }));
 
+    const [openEdit, setOpenEdit] = useState(false);
+    
     const handleTagsInputChange = (e) => {
-        setUpdatedMessage((prev) => ({...prev, tags: e.target.value}));
-        let updatedChips = new Set();
+        let updatedTags = new Set();
         e.target.value.split(',')?.map((item) => {
-            let chip = item.trim()
-            if(chip?.length > 0) updatedChips.add(chip)  // Trim each chip to remove leading and trailing whitespace
+            let tag = item.trim()
+            if(tag?.length > 0) updatedTags.add(tag)  // Trim each to remove leading and trailing whitespace
         })
-        setChips(Array.from(updatedChips))
+        setTags(Array.from(updatedTags))
+        
     };
+
+    useEffect (() => {
+        setUpdatedMessage((prev) => ({...prev, tags: tags}));
+    }, [tags])
 
     const VALIDATION_PAYLOAD = {valid: null, attribute: null, note: null};
     const [validation, setValidation] = useState(VALIDATION_PAYLOAD);
@@ -68,7 +72,7 @@ const MessageTile = ({ message } ) => {
     const handleCloseEdit = () => {
         setOpenEdit(false);
         setUpdatedMessage(message); // reset
-        setChips((message?.tags ?? "").split(",")); // reset
+        setTags(message?.tags); // reset
         setValidation(VALIDATION_PAYLOAD); // reset
         setValidating(false);
     }
@@ -113,28 +117,26 @@ const MessageTile = ({ message } ) => {
             {isLoading && <CircularProgress size="30px" />}
             <Card 
                 sx={{ 
-                    width: 300, height: 350,
+                    width: 300, 
+                    height: 350,
                     cursor: "pointer",
                     transition: "box-shadow 0.3s ease",
                     boxShadow: elevated ? "0px 4px 12px rgba(0, 0, 0, 0.2)" : undefined,
-                    border: "1px solid rgba(0, 0, 0, 0.1)"
+                    border: "1px solid rgba(0, 0, 0, 0.1)",
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
                 }} 
                 onMouseEnter={() => setElevated(true)} 
                 onMouseLeave={() => setElevated(false)}
                 onClick={() => setOpenView(true)}
             >
                 <CardContent>
-                    {chips?.length > 0 && <Chip label={chips[0]} variant="outlined" size="small"/>}
-                    {chips?.length > 1 && 
-                    <TagsTooltip 
-                        title={<Stack>{chips?.slice(1)?.map((tag, index) => <Typography key={index} variant='body2'>{tag}</Typography>)}</Stack>}
-                        placement="right-start"
+                    <Typography 
+                        variant="h5" 
+                        component="div" 
+                        style={{paddingTop: '4px'}}
                     >
-                        <Badge badgeContent={chips?.length - 1} color="primary">
-                            <Add color="action" />
-                        </Badge>
-                    </TagsTooltip>}
-                    <Typography variant="h5" component="div" style={{paddingTop: '4px'}}>
                         {message?.title}
                     </Typography>
                     <Box
@@ -143,12 +145,26 @@ const MessageTile = ({ message } ) => {
                         alt="Thumbnail"
                         sx={{ width: '100%', height: 150, objectFit: 'cover', my: 1 }}
                     />
-                    <Typography variant="body2">
-                        {message?.description?.length > 150
-                        ? `${message.description.slice(0, 150)}...`
-                        : message?.description}
+                    <Typography 
+                        variant="body2" 
+                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
+                    >
+                        {message?.description}
                     </Typography>
                 </CardContent>
+                <Box sx={{ padding: '16px', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {tags?.length > 0 && <Chip label={tags[0]} variant="outlined" size="small"/>}
+                    {tags?.length > 1 && 
+                        <TagsTooltip 
+                            title={<Stack>{tags?.slice(1)?.map((tag, index) => <Typography key={index} variant='body2'>{tag}</Typography>)}</Stack>}
+                            placement="right-start"
+                        >
+                            <Badge badgeContent={tags?.length - 1} color="primary">
+                                <Add color="action" />
+                            </Badge>
+                        </TagsTooltip>
+                    }
+                </Box>
             </Card>
             
             {openView &&
@@ -163,7 +179,7 @@ const MessageTile = ({ message } ) => {
                 <DialogTitle id="scroll-dialog-title">
                     {message?.title}
                     <div>
-                        {chips?.map((tag, index) => (
+                        {tags?.map((tag, index) => (
                             <Chip key={index} label={tag} variant="outlined" size="small" style={{margin: '4px'}}/>
                         ))}
                     </div>
@@ -245,7 +261,7 @@ const MessageTile = ({ message } ) => {
                         onChange={(e) => handleTagsInputChange(e)}
                     />
                     <Stack direction="row" spacing={1}>
-                        {chips.map((chip, index) => (
+                        {tags.map((chip, index) => (
                             <Chip key={index} label={chip} variant="outlined" size="small"/>
                         ))}
                     </Stack>

@@ -52,25 +52,20 @@ export const addMessage = createAsyncThunk('messages/addMessage', async (message
 
     const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}`;
 
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    
-    if(thumbnail){
-      formData.append('thumbnail', thumbnail);
-    }
-
-    if(tags){
-      formData.append('tags', tags);
+    const payload = {
+      title: title,
+      description: description,
+      thumbnail: thumbnail,
+      tags: tags
     }
   
-    console.log('Calling', api, Object.fromEntries(formData.entries()))
+    console.log('Calling', api, payload)
     const response = await axios({
       method: 'POST',
       url: api,
-      data: formData,
+      data: payload,
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
       },
     });
 
@@ -92,29 +87,20 @@ export const editMessage = createAsyncThunk('messages/editMessage', async (messa
 
     const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}?id=${id}`;
     
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    
-    if(thumbnail){
-      formData.append('thumbnail', thumbnail);
-    } else {
-      formData.append('thumbnail', undefined);
-    }
-
-    if(tags){
-      formData.append('tags', tags);
-    } else {
-      formData.append('tags', undefined);
+    const payload = {
+      title: title,
+      description: description,
+      thumbnail: thumbnail,
+      tags: tags
     }
   
-    console.log('Calling', api, Object.fromEntries(formData.entries()))
+    console.log('Calling', api, payload)
     const response = await axios({
       method: 'PUT',
       url: api,
-      data: formData,
+      data: payload,
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
       },
     });
 
