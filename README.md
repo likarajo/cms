@@ -10,40 +10,40 @@
 
 1. Install front end dependencies
 
-```
-cd frontend
-npm install
-```
+    ```
+    cd frontend
+    npm install
+    ```
 
 2. Install backend dependencies
 
-```
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+    ```
+    cd backend
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
 
 3. Update Local SQLite DB (if not created)
 
-```
-cd backend
-flask db init
-flask db migrate
-flask db upgrade
-sqlite3 app.db ".tables"
-```
+    ```
+    cd backend
+    flask db init
+    flask db migrate
+    flask db upgrade
+    sqlite3 app.db ".tables"
+    ```
 
 4. Enable Video Transcription
 
-Download the Automatic Speech Recognition Model (~ 4 minutes)
-```
-cd backend
-curl -L https://alphacephei.com/vosk/models/vosk-model-en-us-0.22.zip -o app/toolkit/vosk-model.zip
-unzip app/toolkit/vosk-model.zip -d app/toolkit/
-```
+    Download the Automatic Speech Recognition Model (~ 4 minutes)
+    ```
+    cd backend
+    curl -L https://alphacephei.com/vosk/models/vosk-model-en-us-0.22.zip -o app/toolkit/vosk-model.zip
+    unzip app/toolkit/vosk-model.zip -d app/toolkit/
+    ```
 
-For sample short video to upload, please use the URL provided in `.env`
+    For sample short video to upload, please use the `VITE_DEFAULT_VIDEO` URL provided in `.env`
 
 5. Test Locally
 
@@ -75,16 +75,16 @@ For sample short video to upload, please use the URL provided in `.env`
 
 6. Start the application containers
 
-(~ 4 minutes)
-```
-docker compose down
-docker compose up --build
-```
+    (~ 4 minutes)
+    ```
+    docker compose down
+    docker compose up --build
+    ```
 
-Access the application
+    Access the application
 
-* Web UI: http://localhost:4000
-* API Server: http://localhost:8000
+    * Web UI: http://localhost:4000
+    * API Server: http://localhost:8000
 
 ---
 
