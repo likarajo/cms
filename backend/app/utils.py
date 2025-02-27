@@ -64,7 +64,7 @@ def transcribe_video(video_url):
     
     except Exception as e:
         logging.exception(f"Error transcribing video: {e}")
-        return "Transcription not available"
+        return None
 
     finally:
         # Cleanup temporary files

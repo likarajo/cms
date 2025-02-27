@@ -330,7 +330,8 @@ const MessageTile = ({ message } ) => {
                             }
                         }, 300)} // Debounce to avoid excessive re-renders
                     />
-                    {(updatedMessage?.video !== message?.video) && // only if video link is changed
+                    {message?.transcript && <>Transcript exists</>}
+                    {((updatedMessage?.video !== message?.video) || (updatedMessage?.video && !message?.transcript))&& // if video link is changed or transcript is absent
                     <FormControlLabel 
                         control={
                             <Switch 
