@@ -1,7 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { debounce } from 'lodash';
-import { CircularProgress, Container, Button, Grid2, Dialog, DialogTitle, DialogContent, DialogActions, TextField, LinearProgress, Typography, Stack, Chip } from '@mui/material';
+import { CircularProgress, Container, Button, Grid2, Dialog, DialogTitle, DialogContent, DialogActions, 
+    TextField, LinearProgress, Typography, Stack, Chip, FormControlLabel, Switch, Alert
+} from '@mui/material';
 import { AddCircleOutline, Check, Close } from '@mui/icons-material';
 import { useMessageStore } from "@/redux/stores/messageStore";
 import { useSelector } from 'react-redux';
@@ -66,10 +68,13 @@ const Messages = () => {
         setValidating(false);
     }
 
+    const [isLoading2, setIsLoading2] = useState(false);
+
     const handleSubmit = async () => {
-        setValidating(true);
         try {
+            setValidating(true);
             const { valid, attribute, note } = await handleValidateMessage(newMessage);
+            setValidating(false);
             if(!valid) {
                 console.log("Validation failed:", attribute, note)
                 setValidation((prev) => ({
@@ -80,7 +85,7 @@ const Messages = () => {
                 }))
                 alert(note);
             } else {
-                setIsLoading(true);
+                setIsLoading2(true);
                 try {
                     let newMessageTitle = newMessage?.title;
                     console.log("Adding New Message", newMessage)
@@ -95,11 +100,12 @@ const Messages = () => {
                 } catch (error) {
                     console.error(error)
                 } finally {
-                    setIsLoading(false);
+                    setIsLoading2(false);
                 }
             }
         } finally {
             setValidating(false);
+            setIsLoading2(false);
         }
     }
 
@@ -135,7 +141,7 @@ const Messages = () => {
                     if (reason !== 'backdropClick') handleCloseAdd() // Only if it isn't a backdrop click
                 }}
                 maxWidth={"lg"}
-                slotProps={{paper: {sx: {minWidth: '900px', minHeight: '900px'}}}}
+                slotProps={{paper: {sx: {width: '900px', minHeight: '900px'}}}}
             >
                 <DialogTitle id="scroll-dialog-title">
                     Add New Message
@@ -160,7 +166,7 @@ const Messages = () => {
                         variant="outlined" 
                         margin="normal" 
                         fullWidth
-                        multiline rows={15}
+                        multiline rows={10}
                         error={validation?.valid===false && validation?.attribute === "description"}
                         helperText={validation?.valid===false && validation?.attribute === "description" ? validation?.note : null}
                         onChange={debounce((e) => {
@@ -198,7 +204,17 @@ const Messages = () => {
                             }
                         }, 300)} // Debounce to avoid excessive re-renders
                     />
-                    {validating && <div><Typography variant='body2'>Validating</Typography><LinearProgress/></div>}
+                    {(newMessage?.video?.length>0) && // only if video link is added
+                    <FormControlLabel 
+                        control={
+                            <Switch 
+                                checked={newMessage?.gen_transcript}
+                                onChange={(e) => setNewMessage((prev) => ({...prev, gen_transcript: e.target.checked}))}
+                            />
+                        }
+                        label="Generate Transcript" 
+                    />}
+                    {newMessage?.gen_transcript && <Alert severity="warning" sx={{width: '200px'}}>Longer Upload Time</Alert>}
                     <TextField 
                         label={"Tags"} 
                         variant="standard" 
@@ -212,6 +228,8 @@ const Messages = () => {
                             <Chip key={index} label={chip} variant="outlined" size="small"/>
                         ))}
                     </Stack>
+                    {validating && <div><Typography variant='body2'>Validating</Typography><LinearProgress/></div>}
+                    {isLoading2 && <div><Typography variant='body2'>Uploading</Typography><LinearProgress/></div>}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => handleSubmit()} variant="outlined" startIcon={<Check/>}>Submit</Button>
