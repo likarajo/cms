@@ -1,0 +1,13 @@
+#root {
+  font-family: 'Universal Sans', sans-serif;
+  font-weight: 400;
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+body {
+  width: 100vw;
+  min-width: 320px;
+  height: 100vh;
+  min-height: 100vh;
+}
