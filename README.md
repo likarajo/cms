@@ -91,6 +91,8 @@
 
         ![backend](assets/backend.png)
 
+    * [Walkthrough](assets/walthrough.mov)
+
 ---
 
 ## Video Transcription Models
