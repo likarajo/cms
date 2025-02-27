@@ -43,10 +43,41 @@ curl -L https://alphacephei.com/vosk/models/vosk-model-en-us-0.22.zip -o app/too
 unzip app/toolkit/vosk-model.zip -d app/toolkit/
 ```
 
-5. Start the application containers
+For sample short video to upload, please use the URL provided in `.env`
+
+5. Test Locally
+
+* Frontend
+    * Start the React app in a terminal
+        ```
+        cd frontend
+        npm run dev
+        ```
+    * Test on another terminal
+        ```
+        cd frontend
+        npm test
+        ```
+
+* Backend
+    * Start the Flask app in a terminal
+        ```
+        cd backend
+        python wsgi.py
+        ```
+    * Test on another terminal
+        ```
+        cd backend
+        pytest -s tests/
+        ```
+
+* Stop all containers after testing to release the ports
+
+6. Start the application containers
 
 (~ 4 minutes)
 ```
+docker compose down
 docker compose up --build
 ```
 
@@ -59,14 +90,4 @@ Access the application
 
 ## Video Transcription Models
 
-Free and Open Source
-
-| Library         | Speed      | Accuracy    | Offline? | Best for                         |
-|---------------|------------|-------------|----------|----------------------------------|
-| **Whisper**   | Slow       | Very High   | No       | High accuracy, multiple languages |
-| **Vosk**      | Very Fast  | Moderate    | Yes      | Offline, super lightweight       |
-| **Faster Whisper** | Fast  | Very High   | No       | Faster than Whisper, GPU support |
-
-- **For best accuracy** → OpenAI Whisper  
-- **For fastest & offline** → Vosk  
-- **For balanced speed & accuracy** → Faster Whisper
+[Reference](backend/app/toolkit/readme.md)
