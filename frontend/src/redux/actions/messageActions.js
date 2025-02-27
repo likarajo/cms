@@ -66,16 +66,19 @@ export const fetchVideo = createAsyncThunk ('messages/fetchVideo', async(video) 
 
 export const addMessage = createAsyncThunk('messages/addMessage', async (message, { rejectWithValue }) => {
   try {
-    const { title, description, thumbnail, video, tags } = message;
+    const { title, description, thumbnail, video, tags, gen_transcript } = message;
 
     const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}`;
 
-    const payload = {
+    let payload = {
       title: title,
       description: description,
       thumbnail: thumbnail,
       video: video,
       tags: tags
+    }
+    if(gen_transcript){
+      payload = {...payload, gen_transcript: gen_transcript}
     }
   
     console.log('Calling', api, payload)
@@ -108,16 +111,19 @@ export const addMessage = createAsyncThunk('messages/addMessage', async (message
 
 export const editMessage = createAsyncThunk('messages/editMessage', async (message, { rejectWithValue }) => {
   try {
-    const { id, title, description, thumbnail, video, tags } = message;
+    const { id, title, description, thumbnail, video, tags, gen_transcript } = message;
 
     const api = `${API_BASE_URL}${API_ROUTES.MESSAGES}?id=${id}`;
     
-    const payload = {
+    let payload = {
       title: title,
       description: description,
       thumbnail: thumbnail,
       video: video,
       tags: tags
+    }
+    if(gen_transcript){
+      payload = {...payload, gen_transcript: gen_transcript}
     }
   
     console.log('Calling', api, payload)

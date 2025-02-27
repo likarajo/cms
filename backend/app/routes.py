@@ -1,22 +1,14 @@
 """Application Server Routes"""
-import logging
-import sys
 from flask import Blueprint, json, render_template, request, make_response
 import requests
-from app import app
-from app.utils import create_db_session
+from app import app, logging
+from app.utils import create_db_session, transcribe_video
 from app.models import Message, Tag, message_tags
 from urllib.parse import urlparse
 
 
 main = Blueprint("main", __name__)
 messages = Blueprint("messages", __name__)
-
-logging.basicConfig(
-    level=logging.INFO, 
-    format="%(levelname)s - %(filename)s - %(funcName)s - line %(lineno)d - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
 
 @main.route("/")
 def home():
@@ -101,6 +93,7 @@ def add_message():
                 thumbnail = None
         
         video = data.get('video', None)
+        transcript = None
         if video:
             # Validate if the video is a valid URL
             parsed_url = urlparse(video)
@@ -113,12 +106,8 @@ def add_message():
                 video_format = response.headers.get('Content-Type')
                 if not video_format or video_format not in app.config.get('ALLOWED_VIDEO_FORMATS'):
                     return make_response({"msg": f"Only {app.config.get('ALLOWED_VIDEO_FORMATS')} formats are allowed."}, 400)
-                transcript = "" #TODO: transcribe video
-            else:
-                video = None
-                transcript = None
-        else:
-            transcript = None
+                if data.get('gen_transcript', False):
+                    transcript = transcribe_video(video)
 
         tags = data.get('tags', [])
 
@@ -177,48 +166,52 @@ def update_message():
         description = data.get('description')
         if not description:
             return make_response({"msg": "Description is required"}, 400)
-        message.description = description
+        if message.description != description:
+            message.description = description
 
         thumbnail = data.get('thumbnail', None)
         if thumbnail:
-            # Validate if the thumbnail is a valid URL
-            parsed_url = urlparse(thumbnail)
-            if all([parsed_url.scheme, parsed_url.netloc]):
-                # Download the image from the URL
-                response = requests.get(thumbnail, stream=True)
-                if response.status_code != 200:
-                    return make_response({"msg": "Failed to fetch thumbnail image from URL"}, 400)
-                # Precautionary server-side validation for thumbnail image
-                image_format = response.headers.get('Content-Type')
-                if image_format not in app.config.get('ALLOWED_IMAGE_FORMATS'):
-                    return make_response({"msg": f"Only {app.config.get('ALLOWED_IMAGE_FORMATS')} formats are allowed."}, 400)
-                image_size = len(response.content)
-                if image_size > int(app.config.get('MAX_IMAGE_SIZE_MB')) * 1024 * 1024: # Convert MB to bytes
-                    return make_response({"msg": f"Image size must be less than {app.config.get('MAX_IMAGE_SIZE_MB')} MB."}, 400)
-                message.thumbnail = thumbnail
-            else: 
-                message.thumbnail = None
+            if message.thumbnail != thumbnail:
+                # Validate if the thumbnail is a valid URL
+                parsed_url = urlparse(thumbnail)
+                if all([parsed_url.scheme, parsed_url.netloc]):
+                    # Download the image from the URL
+                    response = requests.get(thumbnail, stream=True)
+                    if response.status_code != 200:
+                        return make_response({"msg": "Failed to fetch thumbnail image from URL"}, 400)
+                    # Precautionary server-side validation for thumbnail image
+                    image_format = response.headers.get('Content-Type')
+                    if image_format not in app.config.get('ALLOWED_IMAGE_FORMATS'):
+                        return make_response({"msg": f"Only {app.config.get('ALLOWED_IMAGE_FORMATS')} formats are allowed."}, 400)
+                    image_size = len(response.content)
+                    if image_size > int(app.config.get('MAX_IMAGE_SIZE_MB')) * 1024 * 1024: # Convert MB to bytes
+                        return make_response({"msg": f"Image size must be less than {app.config.get('MAX_IMAGE_SIZE_MB')} MB."}, 400)
+                    message.thumbnail = thumbnail
+                else: 
+                    message.thumbnail = None
         else:
             message.thumbnail = None
 
         video = data.get('video', None)
         if video:
-            # Validate if the video is a valid URL
-            parsed_url = urlparse(video)
-            if all([parsed_url.scheme, parsed_url.netloc]):
-                # Download the video from the URL
-                response = requests.head(video)
-                if response.status_code != 200:
-                    return make_response({"msg": "Failed to fetch video from URL"}, 400)
-                # Precautionary server-side validation for thumbnail image
-                video_format = response.headers.get('Content-Type')
-                if not video_format or video_format not in app.config.get('ALLOWED_VIDEO_FORMATS'):
-                    return make_response({"msg": f"Only {app.config.get('ALLOWED_VIDEO_FORMATS')} formats are allowed."}, 400)
-                message.video = video
-                message.transcript = "" #TODO: transcribe video
-            else:
-                message.video = None
-                message.transcript = None
+            if message.video != video:
+                # Validate if the video is a valid URL
+                parsed_url = urlparse(video)
+                if all([parsed_url.scheme, parsed_url.netloc]):
+                    # Download the video from the URL
+                    response = requests.head(video)
+                    if response.status_code != 200:
+                        return make_response({"msg": "Failed to fetch video from URL"}, 400)
+                    # Precautionary server-side validation for thumbnail image
+                    video_format = response.headers.get('Content-Type')
+                    if not video_format or video_format not in app.config.get('ALLOWED_VIDEO_FORMATS'):
+                        return make_response({"msg": f"Only {app.config.get('ALLOWED_VIDEO_FORMATS')} formats are allowed."}, 400)
+                    message.video = video
+                    if data.get('gen_transcript', False):
+                        message.transcript = transcribe_video(video)
+                else:
+                    message.video = None
+                    message.transcript = None
         else:
             message.video = None
             message.transcript = None

@@ -1,7 +1,9 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react"
 import { debounce } from 'lodash';
-import { Card, CardContent, Typography, Box, Chip, Badge, Stack, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField, LinearProgress, CircularProgress, IconButton } from '@mui/material';
+import { Card, CardContent, Typography, Box, Chip, Badge, Stack, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, 
+    Button, TextField, LinearProgress, CircularProgress, IconButton, FormControlLabel, Switch, Alert
+} from '@mui/material';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { Add, Close, Edit, Check, PlayArrow } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
@@ -78,9 +80,10 @@ const MessageTile = ({ message } ) => {
     }
 
     const handleSubmit = async () => {
-        setValidating(true);
         try {
+            setValidating(true);
             const { valid, attribute, note } = await handleValidateMessage(updatedMessage);
+            setValidating(false);
             if(!valid) {
                 console.log("Validation failed:", attribute, note)
                 setValidation((prev) => ({
@@ -111,6 +114,7 @@ const MessageTile = ({ message } ) => {
             }
         } finally {
             setValidating(false);
+            setIsLoading(false);
         }
     }
 
@@ -265,7 +269,7 @@ const MessageTile = ({ message } ) => {
                     if (reason !== 'backdropClick') handleCloseEdit() // Only if it isn't a backdrop click
                 }}
                 maxWidth={"lg"}
-                slotProps={{paper: {sx: {minWidth: '900px', minHeight: '900px'}}}}
+                slotProps={{paper: {sx: {width: '900px', minHeight: '900px'}}}}
             >
                 <DialogTitle id="scroll-dialog-title">
                     {message?.title}
@@ -276,7 +280,7 @@ const MessageTile = ({ message } ) => {
                         variant="outlined" 
                         margin="normal" 
                         fullWidth
-                        multiline rows={15}
+                        multiline rows={10}
                         error={validation?.valid===false && validation?.attribute === "description"}
                         helperText={validation?.valid===false && validation?.attribute === "description" ? validation?.note : null}
                         defaultValue={updatedMessage?.description}
@@ -317,7 +321,17 @@ const MessageTile = ({ message } ) => {
                             }
                         }, 300)} // Debounce to avoid excessive re-renders
                     />
-                    {validating && <div><Typography variant='body2'>Validating</Typography><LinearProgress/></div>}
+                    {(updatedMessage?.video !== message?.video) && // only if video link is changed
+                    <FormControlLabel 
+                        control={
+                            <Switch 
+                                checked={updatedMessage?.gen_transcript}
+                                onChange={(e) => setUpdatedMessage((prev) => ({...prev, gen_transcript: e.target.checked}))}
+                            />
+                        } 
+                        label="Generate Transcript" 
+                    />}
+                    {updatedMessage?.gen_transcript && <Alert severity="warning" sx={{width: '200px'}}>Longer Upload Time</Alert>}
                     <TextField 
                         label={"Tags"} 
                         variant="standard" 
@@ -332,6 +346,8 @@ const MessageTile = ({ message } ) => {
                             <Chip key={index} label={chip} variant="outlined" size="small"/>
                         ))}
                     </Stack>
+                    {validating && <div><Typography variant='body2'>Validating</Typography><LinearProgress/></div>}
+                    {isLoading && <div><Typography variant='body2'>Uploading</Typography><LinearProgress/></div>}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => handleSubmit()} variant="outlined" startIcon={<Check/>}>Submit</Button>
