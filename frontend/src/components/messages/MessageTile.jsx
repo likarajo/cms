@@ -175,7 +175,7 @@ const MessageTile = ({ message, assigningTags, setSelectedMessageIds } ) => {
                             component="img"
                             src={message?.thumbnail ?? DEFAULT_IMAGE}
                             alt="Thumbnail"
-                            sx={{ width: '100%', objectFit: 'cover', my: 1 }}
+                            sx={{ width: '100%', height: '148px', objectFit: 'cover', my: 1 }}
                         />
                         {message?.video && (
                         <Box
@@ -240,7 +240,7 @@ const MessageTile = ({ message, assigningTags, setSelectedMessageIds } ) => {
                             component="img"
                             src={message?.thumbnail ?? DEFAULT_IMAGE}
                             alt="Thumbnail"
-                            sx={{ height: 200, margin: '0 auto', display: 'block', padding: '8px' }}
+                            sx={{ height: '300px', margin: '0 auto', display: 'block', padding: '8px' }}
                         />
                         {message?.video && (
                             <Box

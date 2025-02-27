@@ -17,11 +17,6 @@ const AppHeader = () => {
         setMenuEl(null);
     };
 
-    const handleAddMessage = () => {
-        // TODO:
-        handleCloseMenu();
-    }
-
     const handleOpenApiDocs = () => {
         window.open(`${API_BASE_URL}`)
         handleCloseMenu();
@@ -37,7 +32,6 @@ const AppHeader = () => {
                 onClose={() => handleCloseMenu()}
             >
                 <Container sx={{ width: 200, paddingTop: '24px' }} role="presentation">
-                    <MenuItem onClick={() => handleAddMessage()}>Add Message</MenuItem>
                     <MenuItem onClick={() => handleOpenApiDocs()}>API Server&nbsp;<Launch fontSize='small'/></MenuItem>
                 </Container>
             </Drawer>
