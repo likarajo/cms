@@ -84,7 +84,12 @@
     Access the application
 
     * Web UI: http://localhost:4000
+
+        ![frontend](assets/frontend.png)
+
     * API Server: http://localhost:8000
+
+        ![backend](assets/backend.png)
 
 ---
 
