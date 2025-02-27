@@ -1,0 +1,31 @@
+# ================================
+# Node Modules and Build Artifacts
+# ================================
+node_modules/
+dist/
+
+# ================================
+# Python-Specific Files
+# ================================
+__pycache__/
+
+# ================================
+# Virtual Environments
+# ================================
+venv/
+
+# ================================
+# IDE Settings and Configurations
+# ================================
+.vscode/
+
+# ================================
+# OS-specific Files
+# ================================
+.DS_Store
+
+# ================================
+# ASR toolkit files
+# ================================
+backend/app/toolkit/*
+!backend/app/toolkit/readme.md

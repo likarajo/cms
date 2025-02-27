@@ -1,0 +1,25 @@
+services:
+
+  cms-api:
+    image: cms-api
+    container_name: cms-api
+    build: ./backend
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app:cached
+    restart: always
+
+  cms-web-ui:
+    image: cms-web-ui
+    container_name: cms-web-ui
+    build: ./frontend
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
