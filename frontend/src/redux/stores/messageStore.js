@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux";
-import { fetchMessages, fetchThumbnail, fetchVideo, addMessage, editMessage } from "@/redux/actions/messageActions";
-import { setMessages } from "@/redux/reducers/messageReducer";
+import { fetchMessages, fetchAllTags, fetchThumbnail, fetchVideo, addMessage, editMessage, addTags, assignTags } from "@/redux/actions/messageActions";
+import { setMessages, setAllTags } from "@/redux/reducers/messageReducer";
 import { MAX_IMAGE_SIZE_MB, ALLOWED_IMAGE_FORMATS, ALLOWED_VIDEO_FORMATS } from "@/constants";
 import { isValidURL } from "@/utils/common";
 
@@ -11,6 +11,15 @@ export const useMessageStore = () => {
         try {
             let data = await dispatch(fetchMessages()).unwrap()
             dispatch(setMessages(data));
+        } catch(error) {
+            console.error(error);
+        }
+    }
+
+    const handleFetchAllTags = async () => {
+        try {
+            let data = await dispatch(fetchAllTags()).unwrap()
+            dispatch(setAllTags(data));
         } catch(error) {
             console.error(error);
         }
@@ -95,10 +104,33 @@ export const useMessageStore = () => {
         }
     }
 
+    const handleAddTags = async (tags) => {
+        try {
+            const done = await dispatch(addTags(tags)).unwrap()
+            return done
+        } catch(error) {
+            console.error(error);
+            return false
+        }
+    }
+
+    const handleAssignTags = async (messageIds, tagIds) => {
+        try {
+            const done = await dispatch(assignTags({messageIds, tagIds})).unwrap()
+            return done
+        } catch(error) {
+            console.error(error);
+            return false
+        }
+    }
+
     return { 
         handleFetchMessages,
+        handleFetchAllTags,
         handleValidateMessage,
         handleAddMessage,
         handleUpdateMessage,
+        handleAddTags,
+        handleAssignTags,
     };
 }

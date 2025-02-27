@@ -27,6 +27,31 @@ export const fetchMessages = createAsyncThunk ('messages/fetchMessages', async()
   }
 });
 
+export const fetchAllTags = createAsyncThunk ('messages/fetchAllTags', async() => {
+  try {
+    const api = `${API_BASE_URL}${API_ROUTES.TAGS}`;
+    
+    console.log('Calling', api)
+    const response = await axios({
+      method: 'GET',
+      url: api,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (response.status !== 200) {
+      throw new Error(`Failed to fetch all tags: ${response.status}`);
+    }
+    
+    const result = await response?.data;
+    let data = await result?.data ?? [];
+    console.log("Successfully fetched all tags", data?.length)
+    return data
+  } catch (error) {
+    console.error('Error fetching all tags:', error);
+    return null;
+  }
+});
+
 export const fetchThumbnail = createAsyncThunk ('messages/fetchThumbnail', async(thumbnail) => {
   try {
     console.log('Calling', thumbnail) 
@@ -141,6 +166,78 @@ export const editMessage = createAsyncThunk('messages/editMessage', async (messa
     }
 
     console.log('Successfully edited message', title)
+    return true
+  } catch (error) {
+    const errorMessage = (
+      error.response?.data?.message
+      || error.response?.data?.msg
+      || error.message
+      || 'An unknown error occurred'
+    );
+    return rejectWithValue(errorMessage);
+  }
+});
+
+export const addTags = createAsyncThunk('messages/addTags', async (tags, { rejectWithValue }) => {
+  try {
+    const api = `${API_BASE_URL}${API_ROUTES.TAGS}`;
+
+    let payload = {
+      tags: tags
+    }
+  
+    console.log('Calling', api, payload)
+    const response = await axios({
+      method: 'POST',
+      url: api,
+      data: payload,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.status !== 201) {
+      throw new Error(`Failed to add tags: Status code: ${response.status}`);
+    }
+
+    console.log('Successfully added tags')
+    return true
+  } catch (error) {
+    console.error('Error adding tags:', error);
+    const errorMessage = (
+      error.response?.data?.message
+      || error.response?.data?.msg
+      || error.message
+      || 'An unknown error occurred'
+    );
+    return rejectWithValue(errorMessage);
+  }
+});
+
+export const assignTags = createAsyncThunk('messages/assignTags', async ({messageIds, tagIds}, { rejectWithValue }) => {
+  try {
+    const api = `${API_BASE_URL}${API_ROUTES.MESSAGE_TAGS}`;
+    
+    let payload = {
+      message_ids: messageIds,
+      tag_ids: tagIds
+    }
+  
+    console.log('Calling', api, payload)
+    const response = await axios({
+      method: 'POST',
+      url: api,
+      data: payload,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.status !== 201) {
+      throw new Error(`Failed to assign message tags: Status code: ${response.status}`);
+    }
+
+    console.log('Successfully assigned message tags')
     return true
   } catch (error) {
     const errorMessage = (
