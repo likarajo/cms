@@ -238,7 +238,7 @@ const Messages = () => {
                     <CircularProgress size="30px" />
                 </div>
             )}
-            <Container style={{margin: 0}}>
+            <Container style={{margin: '0'}} maxWidth={false}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                     <Button onClick={() => setOpenAdd(true)} variant="outlined" startIcon={<AddCircleOutline/>} size="small">
                         Add New
