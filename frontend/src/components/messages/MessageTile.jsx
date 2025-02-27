@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react"
 import { debounce } from 'lodash';
 import { Card, CardContent, Typography, Box, Chip, Badge, Stack, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, 
-    Button, TextField, LinearProgress, CircularProgress, IconButton, FormControlLabel, Switch, Alert
+    Button, TextField, LinearProgress, CircularProgress, IconButton, FormControlLabel, Switch, Alert, Checkbox
 } from '@mui/material';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { Add, Close, Edit, Check, PlayArrow } from '@mui/icons-material';
@@ -10,7 +10,7 @@ import { styled } from '@mui/material/styles';
 import { DEFAULT_IMAGE } from "@/constants";
 import { useMessageStore } from "@/redux/stores/messageStore";
 
-const MessageTile = ({ message } ) => {
+const MessageTile = ({ message, assigningTags, setSelectedMessageIds } ) => {
 
     const {
         handleValidateMessage,
@@ -136,7 +136,7 @@ const MessageTile = ({ message } ) => {
                 sx={{ 
                     width: 300, 
                     height: 350,
-                    cursor: "pointer",
+                    cursor: assigningTags ? "default" : "pointer",
                     transition: "box-shadow 0.3s ease",
                     boxShadow: elevated ? "0px 4px 12px rgba(0, 0, 0, 0.2)" : undefined,
                     border: "1px solid rgba(0, 0, 0, 0.1)",
@@ -146,14 +146,28 @@ const MessageTile = ({ message } ) => {
                 }} 
                 onMouseEnter={() => setElevated(true)} 
                 onMouseLeave={() => setElevated(false)}
-                onClick={() => setOpenView(true)}
+                onClick={() => !assigningTags ? setOpenView(true) : undefined}
             >
                 <CardContent>
                     <Typography 
-                        variant="h5" 
+                        variant="h6" 
                         component="div" 
                         style={{paddingTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}
                     >
+                        {assigningTags && (
+                            <Checkbox size="small"
+                                onChange={() => {
+                                    setSelectedMessageIds(prev => {
+                                        if (prev.includes(message?.id)) {
+                                            return prev.filter((id) => id !== message?.id);
+                                        } else {
+                                            return [...prev, message?.id];
+                                        }
+                                    })
+                                }}
+                                sx={{paddingTop: '2px'}}
+                            />
+                        )}
                         {message?.title}
                     </Typography>
                     <div style={{position: 'relative'}}>
@@ -175,7 +189,7 @@ const MessageTile = ({ message } ) => {
                                 zIndex: 1,
                             }}
                         >
-                            <IconButton sx={{ color: 'white' }}>
+                            <IconButton sx={{ color: 'white' }} disabled={assigningTags}>
                                 <PlayArrow />
                             </IconButton>
                         </Box>

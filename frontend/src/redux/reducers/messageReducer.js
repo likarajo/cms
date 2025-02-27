@@ -3,6 +3,7 @@ import { addMessage } from "@/redux/actions/messageActions";
 
 const initialState = {
   messages: [],
+  allTags: [],
   loading: false,
   error: null,
 };
@@ -15,6 +16,11 @@ const messageSlice = createSlice({
     setMessages: (state, action) => {
       state.messages = action.payload;
       console.log("setMessages", current(state).messages);
+    },
+
+    setAllTags: (state, action) => {
+      state.allTags = action.payload;
+      console.log("setAllTags", current(state).allTags);
     },
 
   },
@@ -36,6 +42,7 @@ const messageSlice = createSlice({
 
 export const { 
   setMessages,
+  setAllTags,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import { debounce } from 'lodash';
 import { CircularProgress, Container, Button, Grid2, Dialog, DialogTitle, DialogContent, DialogActions, 
-    TextField, LinearProgress, Typography, Stack, Chip, FormControlLabel, Switch, Alert
+    TextField, LinearProgress, Typography, Stack, Chip, FormControlLabel, Switch, Alert,
+    FormControl, InputLabel, Select, OutlinedInput, MenuItem, Checkbox, ListItemText, IconButton
 } from '@mui/material';
-import { AddCircleOutline, Check, Close } from '@mui/icons-material';
+import { AddCircleOutline, Check, Close, Add } from '@mui/icons-material';
 import { useMessageStore } from "@/redux/stores/messageStore";
 import { useSelector } from 'react-redux';
 import MessageTile from './MessageTile';
@@ -13,24 +14,34 @@ const Messages = () => {
 
     const { 
         handleFetchMessages,
+        handleFetchAllTags,
         handleValidateMessage,
         handleAddMessage,
+        handleAddTags,
+        handleAssignTags,
     } = useMessageStore()
 
     const messages = useSelector((state) => state?.messageReducer?.messages);
+    const allTags = useSelector((state) => state?.messageReducer?.allTags);
 
+    const [filteredMessages, setFilteredMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         setIsLoading(true);
         try {
             handleFetchMessages();
+            handleFetchAllTags();
         } catch (error) {
             console.error(error)
         } finally {
             setIsLoading(false)
         }
     }, [])
+
+    useEffect(() => {
+        setFilteredMessages(messages);
+    }, [messages])
 
     const [openAdd, setOpenAdd] = useState(false);
     const MESSAGE_PAYLOAD = {
@@ -109,6 +120,110 @@ const Messages = () => {
         }
     }
 
+    const [assigningTags, setAssigningTags] = useState(false);
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [selectedMessageIds, setSelectedMessageIds] = useState([]);
+    const [selectedTagIds, setSelectedTagIds] = useState([]);
+    
+    const handleTagsSelect = (e) => {
+        setSelectedTags(e.target.value);
+    };
+
+    useLayoutEffect(() => {
+        if(!assigningTags) {
+            setFilteredMessages( 
+                selectedTags?.length > 0
+                ? messages?.filter(message => message.tags.some(tag => selectedTags.map(t => t.name)?.includes(tag)))
+                : messages
+            )
+        } else {
+            setSelectedTagIds(selectedTags.map(t => t?.id))
+        }
+    }, [selectedTags, assigningTags])
+
+    useLayoutEffect(() => {
+        console.log("selectedMessageIds", selectedMessageIds)
+    }, [selectedMessageIds])
+
+    useLayoutEffect(() => {
+        console.log("selectedTagIds", selectedTagIds)
+    }, [selectedTagIds])
+
+    const handleAssignTagsOpen = async () => {
+        setAssigningTags(true);
+        setSelectedTagIds([]);
+        setSelectedMessageIds([]);
+        setSelectedTags([]);
+        setFilteredMessages(messages)
+    }
+
+    const handleAssignTagsClose = async () => {
+        setFilteredMessages(messages)
+        setAssigningTags(false);
+        setSelectedTagIds([]);
+        setSelectedMessageIds([]);
+    }
+
+    const handleAssignTagsSubmit = async () => {
+        setIsLoading2(true);
+        try {
+            console.log("Assigning Message Tags", selectedMessageIds, selectedTagIds)
+            const done = await handleAssignTags(selectedMessageIds, selectedTagIds)
+            if(done){
+                await handleAssignTagsClose();
+                await handleFetchMessages();
+                alert(`Successfully Assigned Message Tags`)
+            } else {
+                console.error("Assigning Message Tags failed")
+            }
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setIsLoading2(false);
+        }
+    }
+
+    const [openAddTags, setOpenAddTags] = useState(false);
+    const [tagsNew, setTagsNew] = useState([])
+
+    const handleCloseAddTags = async () => {
+        setOpenAddTags(false);
+        setTagsNew([]); // reset
+    }
+
+    const handleTagsInputChangeNew = (e) => {
+        let newTags = new Set();
+        e.target.value.split(',')?.map((item) => {
+            let tag = item.trim()
+            if(tag?.length > 0) newTags.add(tag)  // Trim each to remove leading and trailing whitespace
+        })
+        setTagsNew(Array.from(newTags))
+    };
+
+    const handleSubmitTags = async () => {
+        try {
+            setIsLoading2(true);
+            try {
+                console.log("Adding New Tags", tagsNew)
+                const done = await handleAddTags(tagsNew)
+                if(done){
+                    await handleCloseAddTags();
+                    await handleFetchAllTags();
+                    alert(`Successfully Created the Tags`)
+                } else {
+                    console.error("Adding New Tags failed", tagsNew)
+                }
+            } catch (error) {
+                console.error(error)
+            } finally {
+                setIsLoading2(false);
+            }
+        } finally {
+            setValidating(false);
+            setIsLoading2(false);
+        }
+    }
+
     return (
         <React.Fragment>
             {isLoading && (
@@ -124,12 +239,57 @@ const Messages = () => {
                 </div>
             )}
             <Container style={{margin: 0}}>
-                <Button onClick={() => setOpenAdd(true)} variant="outlined" startIcon={<AddCircleOutline/>} size="small">
-                    Add New
-                </Button>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <Button onClick={() => setOpenAdd(true)} variant="outlined" startIcon={<AddCircleOutline/>} size="small">
+                        Add New
+                    </Button>
+                    <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
+                        {!assigningTags ?
+                            <Button onClick={() => handleAssignTagsOpen()}>
+                                Assign Tag
+                            </Button>
+                        :
+                            <div style={{display: 'flex', alignItems: 'center'}}>
+                                <span>Tag Assignment</span>
+                                <IconButton onClick={() => handleAssignTagsSubmit()} disabled={selectedMessageIds?.length === 0 || selectedTagIds?.length === 0}>
+                                    <Check/>
+                                </IconButton>
+                                <IconButton onClick={() => handleAssignTagsClose()}>
+                                    <Close/>
+                                </IconButton>
+                            </div>
+                        }
+                        <FormControl sx={{ m: 1, width: 150 }}>
+                            <InputLabel id="demo-multiple-checkbox-label">
+                                {!assigningTags ? "Filter By Tags" : "Select Tags"}
+                            </InputLabel>
+                            <Select
+                                multiple
+                                value={selectedTags}
+                                onChange={(e) => handleTagsSelect(e)}
+                                input={<OutlinedInput label={!assigningTags ? "Filter By Tags" : "Select Tags"} />}
+                                renderValue={(selected) => selected.map(tag => tag.name).join(', ')}
+                                MenuProps={{ PaperProps: {style: {width: 250}} }}
+                            >
+                                {assigningTags && (
+                                    <MenuItem key={"new"} value={"new"} sx={{marginLeft: '8px', gap: '8px'}} onClick={() => setOpenAddTags(true)}>
+                                        <Add/>
+                                        <ListItemText primary={"Create New"}/>
+                                    </MenuItem>
+                                )}
+                                {allTags?.map((tag) => (
+                                    <MenuItem key={tag?.name} value={tag}>
+                                        <Checkbox checked={selectedTags?.some(selectedTag => selectedTag.name === tag.name)} />
+                                        <ListItemText primary={tag?.name} />
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </div>
+                </div>
                 <Grid2 container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }} style={{paddingTop: '24px'}}>
-                    {messages?.map((message, index) => (
-                        <MessageTile key={index} message={message}/>
+                    {filteredMessages?.map((message, index) => (
+                        <MessageTile key={index} message={message} assigningTags={assigningTags} setSelectedMessageIds={setSelectedMessageIds}/>
                     ))}
                 </Grid2>
             </Container>
@@ -236,6 +396,41 @@ const Messages = () => {
                     <Button onClick={() => handleCloseAdd()} startIcon={<Close/>}>Cancel</Button>
                 </DialogActions>
             </Dialog>}
+
+            {openAddTags &&
+            <Dialog
+                open={openAddTags}
+                onClose={(_, reason) => {
+                    if (reason !== 'backdropClick') handleCloseAddTags() // Only if it isn't a backdrop click
+                }}
+                maxWidth={"md"}
+                slotProps={{paper: {sx: {width: '500px', minHeight: '500px'}}}}
+            >
+                <DialogTitle id="scroll-dialog-title">
+                    Create New Tag
+                </DialogTitle>
+                <DialogContent dividers={true}>
+                    <TextField 
+                        label={"Tags"} 
+                        variant="standard" 
+                        margin="normal" 
+                        fullWidth
+                        helperText="Enter Tags comma-separated"
+                        onChange={(e) => handleTagsInputChangeNew(e)}
+                    />
+                    <Stack direction="row" spacing={1}>
+                        {tagsNew.map((chip, index) => (
+                            <Chip key={index} label={chip} variant="outlined" size="small"/>
+                        ))}
+                    </Stack>
+                    {isLoading2 && <div><Typography variant='body2'>Creating</Typography><LinearProgress/></div>}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => handleSubmitTags()} variant="outlined" startIcon={<Check/>} disabled={tagsNew?.length < 1}>Submit</Button>
+                    <Button onClick={() => handleCloseAddTags()} startIcon={<Close/>}>Cancel</Button>
+                </DialogActions>
+            </Dialog>}
+
         </React.Fragment>
     )
 }
