@@ -210,7 +210,7 @@ const MessageTile = ({ message } ) => {
                     if (reason !== 'backdropClick') setOpenView(false) // Only if it isn't a backdrop click
                 }}
                 maxWidth={"lg"}
-                sx={{ minWidth: '900px', minHeight: '900px', objectFit: 'cover', my: 1 }}
+                slotProps={{paper: {sx: {width: '900px', minHeight: '900px'}}}}
             >
                 <DialogTitle id="scroll-dialog-title">
                     {message?.title}
@@ -253,6 +253,15 @@ const MessageTile = ({ message } ) => {
                     >
                         <Typography variant="body2">
                             {message?.description}
+                            {message?.transcript && (
+                                <>
+                                    <br/><br/>
+                                    -------- Transcript ---------
+                                    <br /><br/>
+                                        {message.transcript}
+                                    <br/><br/>
+                                </>
+                            )}
                         </Typography>
                     </DialogContentText>
                 </DialogContent>
