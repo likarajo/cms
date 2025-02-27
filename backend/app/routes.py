@@ -1,8 +1,8 @@
 """Application Server Routes"""
-from flask import Blueprint, json, render_template, request, make_response
+from flask import Blueprint, json, render_template, request, make_response, current_app as app
 import requests
 from sqlalchemy import or_
-from app import app, logging
+from app import logging
 from app.utils import create_db_session, transcribe_video
 from app.models import Message, Tag, message_tags
 from urllib.parse import urlparse
@@ -20,14 +20,66 @@ def home():
             route_info = {
                 "endpoint": rule.endpoint,
                 "methods": methods,
-                "url": rule.rule
+                "url": rule.rule,
+                "request_body": "",  # Placeholder for request body info
+                "request_args": []   # Placeholder for request args info
             }
+            # Try to retrieve docstring for the route
+            view_func = app.view_functions.get(rule.endpoint)
+            if view_func:
+                docstring = view_func.__doc__
+                if docstring:
+                    route_info["doc_string"] = docstring.strip()
+            
             routes.append(route_info)
     return render_template('index.html', routes=routes)
 
 
 @messages.route("/messages", methods=["GET"])
 def get_messages():
+    """
+    Fetches messages from the database with optional filtering by message ID, title, or tags.
+
+    This route handles GET requests to fetch messages, allowing users to filter results by:
+    - Message IDs (comma-separated)
+    - Titles (comma-separated)
+    - Tags (comma-separated)
+
+    The function connects to the database, constructs a query with the appropriate filters based on the request parameters, 
+    and returns the filtered messages in the response.
+
+    Query Parameters:
+    - id (optional): A comma-separated list of message IDs to filter by.
+    - title (optional): A comma-separated list of titles to filter by.
+    - tag (optional): A comma-separated list of tags to filter by.
+
+    Returns:
+    - JSON response with the list of messages in the "data" key if successful, or an error message if an exception occurs.
+
+    HTTP Status Codes:
+    - 200: If the messages are fetched successfully.
+    - 500: If there is an error while fetching the messages.
+
+    Logs:
+    - Logs the URL of the request.
+    - Logs the number of messages fetched successfully.
+    - Logs any exceptions that occur during the process.
+
+    Database:
+    - Connects to the database using the URI from the app configuration.
+    - Performs filtering based on the request parameters (id, title, tags).
+
+    Example:
+    GET /messages?id=1,2&title=Hello,World&tag=urgent,important
+
+    Returns a JSON response with the filtered messages based on the specified IDs, titles, and tags.
+
+    Exceptions:
+    - Any errors during database operations are caught and logged, with a 500 error returned to the user.
+
+    Finally:
+    - The database session is always closed, regardless of whether the operation was successful or an error occurred.
+    """
     try:
         logging.info(request.url)
 
@@ -66,6 +118,60 @@ def get_messages():
 
 @messages.route("/messages", methods=["POST"])
 def add_message():
+    """
+    Adds a new message to the database with optional thumbnail, video, and tags.
+
+    This route handles POST requests to create a new message, validating the provided data 
+    and ensuring that required fields (title and description) are included. It also checks 
+    for duplicate titles and validates thumbnail and video URLs, ensuring that they meet 
+    specified format and size constraints. Additionally, the message can be associated with 
+    tags, which are either matched to existing tags in the database or created as new.
+
+    Request Body (JSON):
+    - title (required): The title of the message.
+    - description (required): The description of the message.
+    - thumbnail (optional): A URL to the thumbnail image for the message.
+    - video (optional): A URL to the video associated with the message.
+    - tags (optional): A list of tags associated with the message.
+    - gen_transcript (optional): A boolean indicating whether a transcript should be generated for the video.
+
+    Returns:
+    - 201: If the message is added successfully.
+    - 400: If required fields are missing, if the title already exists, or if thumbnail/video validation fails.
+    - 500: If there is an error during the process.
+
+    Logs:
+    - Logs the URL of the request and any relevant validation or error messages.
+    - Logs a successful message addition with the message title.
+    - Logs any exceptions that occur during the process.
+
+    Database:
+    - Checks if a message with the same title already exists.
+    - Validates the thumbnail and video URLs, ensuring they meet format and size requirements.
+    - Validates and associates tags with the message, creating new tags if necessary.
+
+    Example:
+    POST /messages
+    {
+        "title": "New Message",
+        "description": "This is a new message.",
+        "thumbnail": "http://example.com/thumbnail.jpg",
+        "video": "http://example.com/video.mp4",
+        "tags": ["tag1", "tag2"],
+        "gen_transcript": true
+    }
+
+    Returns a JSON response indicating success or failure.
+
+    Exceptions:
+    - If a title already exists, a 400 error is returned.
+    - If any validation fails for thumbnail, video, or required fields, a 400 error is returned.
+    - Any unexpected errors are caught, logged, and a 500 error is returned to the user.
+
+    Finally:
+    - The database session is always closed, regardless of whether the operation was successful or an error occurred.
+    """
+
     try:
         logging.info(request.url)
 
@@ -163,6 +269,63 @@ def add_message():
 
 @messages.route("/messages", methods=["PUT"])
 def update_message():
+    """
+    Updates an existing message in the database.
+
+    This route handles PUT requests to update an existing message, identified by its ID. 
+    The update can include changes to the message description, thumbnail, video, and tags. 
+    It validates the inputs and performs the necessary checks for URL validity, format, 
+    and size for the thumbnail and video. If the specified message ID is not found, 
+    or if required fields are missing or invalid, appropriate error responses are returned.
+
+    Request Body (JSON):
+    - description (required): The new description of the message.
+    - thumbnail (optional): The URL of the new thumbnail image.
+    - video (optional): The URL of the new video associated with the message.
+    - tags (optional): A list of tags to associate with the message.
+    - gen_transcript (optional): A boolean indicating whether a transcript should be generated for the video.
+
+    Query Parameters:
+    - id (required): The ID of the message to be updated.
+
+    Returns:
+    - 200: If the message is updated successfully.
+    - 400: If required fields are missing or if thumbnail/video validation fails.
+    - 404: If the message with the specified ID is not found.
+    - 500: If there is an error during the process.
+
+    Logs:
+    - Logs the URL of the request and any relevant validation or error messages.
+    - Logs a successful message update with the message title.
+    - Logs any exceptions that occur during the process.
+
+    Database:
+    - Fetches the message to be updated by ID.
+    - Validates and updates the description, thumbnail, video, and tags based on the request data.
+    - Updates the tags, creating new ones if necessary.
+
+    Example:
+    PUT /messages?id=123
+    {
+        "description": "Updated description.",
+        "thumbnail": "http://example.com/new_thumbnail.jpg",
+        "video": "http://example.com/new_video.mp4",
+        "tags": ["tag1", "tag3"],
+        "gen_transcript": true
+    }
+
+    Returns a JSON response indicating success or failure.
+
+    Exceptions:
+    - If the message ID is missing or invalid, a 400 error is returned.
+    - If the message with the specified ID is not found, a 404 error is returned.
+    - If validation fails for thumbnail, video, or required fields, a 400 error is returned.
+    - Any unexpected errors are caught, logged, and a 500 error is returned to the user.
+
+    Finally:
+    - The database session is always closed, regardless of whether the operation was successful or an error occurred.
+    """
+
     try:
         logging.info(request.url)
 
@@ -261,6 +424,39 @@ def update_message():
 
 @messages.route("/tags", methods=["GET"])
 def get_tags():
+    """
+    Fetches tags from the database, with optional filters.
+
+    This route handles GET requests to retrieve tags from the database, allowing filtering 
+    by tag ID, name, or associated message titles. It supports filtering by multiple criteria 
+    using query parameters. If no filters are provided, it returns all tags.
+
+    Query Parameters:
+    - id (optional): A comma-separated list of tag IDs to filter by.
+    - name (optional): A comma-separated list of tag names to filter by.
+    - message (optional): A comma-separated list of message titles to filter tags by.
+
+    Returns:
+    - 200: A list of tags that match the specified filters.
+    - 500: If there is an error while fetching the tags.
+
+    Logs:
+    - Logs the URL of the request.
+    - Logs a successful fetch with the number of tags returned.
+    - Logs any exceptions that occur during the process.
+
+    Database:
+    - Filters tags based on the provided filters and returns distinct results.
+
+    Example:
+    GET /tags?id=1,2,name=tag1,tag2,message=message1, message2
+
+    Returns a JSON response with a list of filtered tags.
+
+    Exceptions:
+    - Any errors that occur during the fetching of tags are logged and returned as a 500 error.
+    """
+
     try:
         logging.info(request.url)
 
@@ -300,6 +496,42 @@ def get_tags():
 
 @messages.route("/tags", methods=["POST"])
 def add_tag():
+    """
+    Adds new tags to the database.
+
+    This route handles POST requests to add new tags to the database. It checks whether 
+    the tags already exist (case-insensitive) and only adds those that do not already exist. 
+    The request body must contain a list of tag names.
+
+    Request Body (JSON):
+    - tags (required): A list of tag names to add to the database.
+
+    Returns:
+    - 201: If the tags are added successfully.
+    - 400: If the provided data is invalid or the 'tags' field is not a list.
+    - 500: If there is an error while adding the tags.
+
+    Logs:
+    - Logs the URL of the request.
+    - Logs a successful tag addition with the list of added tags.
+    - Logs any exceptions that occur during the process.
+
+    Database:
+    - Checks if each tag exists and adds only those that are not present.
+
+    Example:
+    POST /tags
+    {
+        "tags": ["tag1", "tag2"]
+    }
+
+    Returns a JSON response indicating success.
+
+    Exceptions:
+    - If the 'tags' field is not a list or is empty, a 400 error is returned.
+    - Any errors that occur during the process are logged and returned as a 500 error.
+    """
+
     try:
         data = json.loads(request.data)
         tags = data.get("tags", [])
@@ -332,6 +564,44 @@ def add_tag():
 
 @messages.route("/message_tags", methods=["POST"])
 def add_message_tags():
+    """
+    Assigns tags to messages by creating links between message IDs and tag IDs.
+
+    This route handles POST requests to assign tags to multiple messages. It expects 
+    a list of message IDs and a list of tag IDs in the request body, and it creates 
+    associations between the provided messages and tags. It avoids duplicate associations 
+    by checking for existing links before creating new ones.
+
+    Request Body (JSON):
+    - message_ids (required): A list of message IDs to which tags will be assigned.
+    - tag_ids (required): A list of tag IDs to be assigned to the messages.
+
+    Returns:
+    - 201: If the message-tag associations are created successfully.
+    - 400: If the 'message_ids' or 'tag_ids' are missing or empty.
+    - 500: If there is an error while assigning the message tags.
+
+    Logs:
+    - Logs the URL of the request.
+    - Logs the number of new message-tag associations created.
+    - Logs any exceptions that occur during the process.
+
+    Database:
+    - Checks for existing message-tag associations and adds only those that are new.
+
+    Example:
+    POST /message_tags
+    {
+        "message_ids": [1, 2],
+        "tag_ids": [1, 2]
+    }
+
+    Returns a JSON response indicating success.
+
+    Exceptions:
+    - If 'message_ids' or 'tag_ids' are missing or empty, a 400 error is returned.
+    - Any errors during the process are logged and returned as a 500 error.
+    """
     try:
         logging.info(request.url)
 
