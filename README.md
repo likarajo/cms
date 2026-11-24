@@ -6,6 +6,16 @@
 * Python 3.11.9
 * Docker 27.5.1
 
+## Configuration
+
+Copy the example environment file and fill in real values. `.env` is git-ignored and must never be committed:
+
+```
+cp .env.example .env
+```
+
+Set your own `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD` and `SECRET_KEY`. Both the local scripts and `docker compose` read `.env`.
+
 ## Local Server
 
 1. Install front end dependencies
@@ -43,7 +53,7 @@
     unzip app/toolkit/vosk-model.zip -d app/toolkit/
     ```
 
-    For sample short video to upload, please use the `VITE_DEFAULT_VIDEO` URL provided in `.env`
+    For sample short video to upload, please use the `VITE_DEFAULT_VIDEO` URL provided in `.env` (see `.env.example`)
 
 5. Test Locally
 
